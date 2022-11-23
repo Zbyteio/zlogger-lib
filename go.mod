@@ -1,4 +1,4 @@
-module github.com/Zbyteio/zbyte-logger-lib
+module github.com/Zbyteio/zlogger-lib
 
 go 1.19
 
