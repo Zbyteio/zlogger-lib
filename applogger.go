@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
@@ -71,12 +72,19 @@ func NewZlogger() (AppLogger){
 	var config zap.Config
 	var localLogger *zap.Logger
 
-
-	config = zap.NewProductionConfig()
-	config.EncoderConfig = zap.NewProductionEncoderConfig()
-	config.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
-	config.Level.SetLevel(zap.InfoLevel)
-
+	if gin.Mode() == gin.DebugMode {
+		config = zap.NewDevelopmentConfig()
+		config.EncoderConfig = zap.NewDevelopmentEncoderConfig()
+		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		config.Level.SetLevel(zap.DebugLevel)
+		localLogger.Info("creating a debug-logger")
+	}else {
+		config = zap.NewProductionConfig()
+		config.EncoderConfig = zap.NewProductionEncoderConfig()
+		config.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
+		config.Level.SetLevel(zap.InfoLevel)
+		localLogger.Info("creating production-logger created")
+	}
 	config.EncoderConfig.TimeKey = "time"
 	config.EncoderConfig.CallerKey = "filePath"
 	config.EncoderConfig.LevelKey = "logLevel"
@@ -92,35 +100,5 @@ func NewZlogger() (AppLogger){
 	}
 
 
-	localLogger.Info("creating production-logger created")
-	return &appLogger{localLogger}
-}
-
-func NewDebugZlogger() (AppLogger){
-	var err error
-	var config zap.Config
-	var localLogger *zap.Logger
-
-
-	config = zap.NewDevelopmentConfig()
-	config.EncoderConfig = zap.NewDevelopmentEncoderConfig()
-	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	config.Level.SetLevel(zap.DebugLevel)
-	
-	config.EncoderConfig.TimeKey = "time"
-	config.EncoderConfig.CallerKey = "filePath"
-	config.EncoderConfig.LevelKey = "logLevel"
-	config.EncoderConfig.MessageKey = "message"
-	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	config.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
-
-	localLogger, err = config.Build(zap.AddCallerSkip(1))
-	if err != nil {
-		// zap logger unable to initialize
-		// use default logger to log this
-		log.Printf("ERROR :: %s", err.Error())
-	}
-
-	localLogger.Info("creating a debug-logger")
 	return &appLogger{localLogger}
 }
