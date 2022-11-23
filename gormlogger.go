@@ -12,14 +12,20 @@ import (
 )
 
 
-type GormLogger interface {}
+type GormLogger interface {
+	GetLoggerWriter()(gorm.LogWriter)
+}
 type gormLogger struct {
-	Gormlogger gorm.LogWriter
+	gormlogger gorm.LogWriter
 	applogger AppLogger
 }
 
 func newGormlogger(appLogger AppLogger)(GormLogger){
-	return &gormLogger{Gormlogger: gorm.Logger{}, applogger: appLogger}
+	return &gormLogger{gormlogger: gorm.Logger{}, applogger: appLogger}
+}
+
+func (gl gormLogger)GetLoggerWriter()(gorm.LogWriter){
+	return gl.gormlogger
 }
 
 func (gl gormLogger)Print(values ...interface{}) {
