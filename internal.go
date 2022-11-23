@@ -1,5 +1,5 @@
 // Package log provides context-aware and structured logging capabilities.
-package main
+package zlogger
 
 import (
 	"fmt"

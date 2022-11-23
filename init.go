@@ -1,4 +1,4 @@
-package main
+package zlogger
 
 import (
 	"github.com/gin-gonic/gin"

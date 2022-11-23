@@ -1,4 +1,4 @@
-package main
+package zlogger
 
 // Foreground colors.
 const (
