@@ -66,7 +66,7 @@ func NewZloggerForTest() (AppLogger, *observer.ObservedLogs) {
 	return &appLogger{testLogger}, recorded
 }
 
-func newZlogger() (AppLogger){
+func NewZlogger() (AppLogger){
 	var err error
 	var config zap.Config
 	var localLogger *zap.Logger
@@ -96,7 +96,7 @@ func newZlogger() (AppLogger){
 	return &appLogger{localLogger}
 }
 
-func newDebugZlogger() (AppLogger){
+func NewDebugZlogger() (AppLogger){
 	var err error
 	var config zap.Config
 	var localLogger *zap.Logger

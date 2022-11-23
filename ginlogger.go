@@ -17,7 +17,7 @@ type ginLogger struct {
 	applogger AppLogger
 }
 
-func newGinLogger(appLogger AppLogger) GinLogger {
+func NewGinLogger(appLogger AppLogger) GinLogger {
 	return &ginLogger{applogger: appLogger}
 }
 

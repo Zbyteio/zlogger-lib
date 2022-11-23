@@ -13,18 +13,20 @@ import (
 
 
 type GormLogger interface {
-	GetLoggerWriter()(gorm.LogWriter)
+	GetLoggerWriter()(gorm.Logger)
 }
 type gormLogger struct {
-	gormlogger gorm.LogWriter
+	gormlogger gorm.Logger
 	applogger AppLogger
 }
 
-func newGormlogger(appLogger AppLogger)(GormLogger){
-	return &gormLogger{gormlogger: gorm.Logger{}, applogger: appLogger}
+func NewGormlogger(appLogger AppLogger, db *gorm.DB)(GormLogger){
+	gormLog :=  gorm.Logger{}
+	db.SetLogger(gormLog)
+	return &gormLogger{gormlogger: gormLog, applogger: appLogger}
 }
 
-func (gl gormLogger)GetLoggerWriter()(gorm.LogWriter){
+func (gl gormLogger)GetLoggerWriter()(gorm.Logger){
 	return gl.gormlogger
 }
 
