@@ -77,13 +77,11 @@ func NewZlogger() (AppLogger){
 		config.EncoderConfig = zap.NewDevelopmentEncoderConfig()
 		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		config.Level.SetLevel(zap.DebugLevel)
-		localLogger.Info("creating a debug-logger")
 	}else {
 		config = zap.NewProductionConfig()
 		config.EncoderConfig = zap.NewProductionEncoderConfig()
 		config.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 		config.Level.SetLevel(zap.InfoLevel)
-		localLogger.Info("creating production-logger created")
 	}
 	config.EncoderConfig.TimeKey = "time"
 	config.EncoderConfig.CallerKey = "filePath"
@@ -97,6 +95,12 @@ func NewZlogger() (AppLogger){
 		// zap logger unable to initialize
 		// use default logger to log this
 		log.Printf("ERROR :: %s", err.Error())
+	}
+
+	if gin.Mode() == gin.DebugMode{
+		localLogger.Info("creating a debug-logger for: " + gin.Mode())
+	} else {
+		localLogger.Info("creating a json-logger for: " + gin.Mode())
 	}
 
 
