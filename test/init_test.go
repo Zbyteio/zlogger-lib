@@ -27,9 +27,7 @@ func init(){
 
 func createServer() (*gin.Engine, *http.Server){
   ginEng := gin.New()
-  ginEng.GET("/", func(c *gin.Context) {
-    c.String(http.StatusOK, "Welcome Gin Server")
-  })
+
   ginSrv := &http.Server{
     Addr:    ":8080",
     Handler: ginEng,

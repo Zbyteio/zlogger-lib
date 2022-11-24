@@ -1,11 +1,12 @@
 package zlogger_test
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"testing"
+
+	"github.com/gin-gonic/gin"
 )
 
 func TestLogger(t *testing.T)  {
@@ -17,15 +18,20 @@ func TestLogger(t *testing.T)  {
 
   t.Run("Test Gin logger", func(t *testing.T) {
     ginEng, ginSrv := createServer()
+    gin.SetMode(gin.DebugMode)
     ginEng.Use(
       ZBlocksGinDebugLogger.GinRequestLoggerMiddleware(),
     )
+    ginEng.GET("/", func(c *gin.Context) {
+      c.String(http.StatusOK, "Welcome Gin Server")
+    })
+
     go runServerAndClose(ginSrv)
     resp, err := http.Get("http://localhost:8080")
     if err != nil {
       log.Panicln(err)
     }
     respByte, _ := io.ReadAll(resp.Body)
-    fmt.Println(string(respByte))
+    ZBlocksAppDebugLogger.Debug(string(respByte))
   })
 }

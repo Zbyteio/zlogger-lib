@@ -109,5 +109,5 @@ func NewZlogger(ginMode string) (AppLogger){
 	} else {
 		libraryLogger.Info("creating a [JSON-LOGGER] for :: " + gin.Mode())
 	}
-	return &appLogger{_appLogger.Named("applogger")}
+	return &appLogger{_appLogger.Named("app")}
 }

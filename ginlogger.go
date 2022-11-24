@@ -3,6 +3,7 @@ package zlogger
 import (
 	"fmt"
 	"log"
+	"net/url"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -15,7 +16,7 @@ type GinLogger interface {
 	GinRequestLoggerMiddleware() gin.HandlerFunc
 }
 type ginLogger struct {
- *zap.Logger
+	*zap.Logger
 }
 
 func NewGinLogger(ginMode string) GinLogger {
@@ -30,7 +31,7 @@ func NewGinLogger(ginMode string) GinLogger {
 		config.EncoderConfig = zap.NewDevelopmentEncoderConfig()
 		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		config.Level.SetLevel(zap.DebugLevel)
-	}else {
+	} else {
 		config = zap.NewProductionConfig()
 		config.EncoderConfig = zap.NewProductionEncoderConfig()
 		config.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
@@ -43,15 +44,13 @@ func NewGinLogger(ginMode string) GinLogger {
 	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	config.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
 	config.DisableCaller = true
-
-	_ginLogger, err = config.Build(zap.AddCallerSkip(1))
+	_ginLogger, err = config.Build()
 	defer _ginLogger.Sync()
 	if err != nil {
 		// zap logger unable to initialize
 		// use default logger to log this
 		log.Printf("ERROR :: %s", err.Error())
 	}
-
 
 	libraryLogger := _ginLogger.Named("lib.gin")
 	if gin.Mode() == gin.DebugMode {
@@ -62,15 +61,21 @@ func NewGinLogger(ginMode string) GinLogger {
 
 	var newGinLogger GinLogger = ginLogger{_ginLogger.Named("gin")}
 
-	// set logger function to 
+	// set logger function to
 	// print routes for this logger
 	gin.DebugPrintRouteFunc = newGinLogger.ginDebugLogger
 	return newGinLogger
 }
 
 func (gl ginLogger) GinRequestLoggerMiddleware() gin.HandlerFunc {
+
 	if gin.Mode() == gin.DebugMode {
 		return func(c *gin.Context) {
+			reqUrl, err := url.JoinPath(c.Request.Host, c.Request.RequestURI)
+			if err != nil {
+				gl.Error(fmt.Sprintf("cannot parse request url invoked : [HOST :: %s] [PATH :: %s]", c.Request.Host, c.Request.RequestURI))
+			}
+		
 			start := time.Now()
 			// Before calling handler
 			c.Next()
@@ -82,30 +87,31 @@ func (gl ginLogger) GinRequestLoggerMiddleware() gin.HandlerFunc {
 			var formatedRequestMethod string = colorifyRequestMethod(c.Request.Method)
 			var formatedLatency string = colorifyRequestLatency(stop.Sub(start))
 
-			gl.Info(fmt.Sprintf("%s\t%s\t%s%s\t%s\t%s",
+			gl.Named(c.Request.Proto).Info(fmt.Sprintf("%s\t%s\t%s\t%s",
 				formatedStatusCode,
 				formatedRequestMethod,
-				c.Request.Host,
-				c.Request.RequestURI,
-				c.Request.Proto,
+				reqUrl,
 				formatedLatency))
 		}
 	} else {
 		return func(c *gin.Context) {
+			reqUrl, err := url.JoinPath(c.Request.Host, c.Request.RequestURI)
+			if err != nil {
+				gl.Error(fmt.Sprintf("cannot parse request url invoked : [HOST :: %s] [PATH :: %s]", c.Request.Host, c.Request.RequestURI))
+			}
+		
 			start := time.Now()
 			// Before calling handler
 			c.Next()
 			stop := time.Now()
 			// After calling handler
 			// create color coding for status codes
-
-			gl.Info(fmt.Sprintf("%d\t%s\t%s%s\t%s\t%v",
-				c.Writer.Status(),
-				c.Request.Method,
-				c.Request.Host,
-				c.Request.RequestURI,
-				c.Request.Proto,
-				stop.Sub(start)))
+				gl.Named(c.Request.Proto).Info("",
+				zap.Int("statusCode", c.Writer.Status()),
+				zap.String("requestMethod", c.Request.Method),
+				zap.String("requestUrl", reqUrl),
+				zap.Duration("latency", stop.Sub(start)),
+			)
 		}
 	}
 }
