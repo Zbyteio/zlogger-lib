@@ -1,7 +1,6 @@
 package zlogger
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -10,7 +9,6 @@ import (
 type GinLogger interface {
 	ginDebugLogger(httpMethod, absolutePath, handlerName string, nuHandlers int)
 	GinRequestLoggerMiddleware() gin.HandlerFunc
-	RequestLoggerGin(param gin.LogFormatterParams) string
 }
 type ginLogger struct {
 	applogger AppLogger
@@ -65,19 +63,7 @@ func (gl ginLogger) GinRequestLoggerMiddleware() gin.HandlerFunc {
 	}
 }
 
+// for printing all the routes defined in gin
 func (gl ginLogger) ginDebugLogger(httpMethod, absolutePath, handlerName string, nuHandlers int) {
 	gl.applogger.Infof("%s\t%s", colorifyRequestMethod(httpMethod), absolutePath)
-}
-
-// testing mode
-func (gl ginLogger) RequestLoggerGin(param gin.LogFormatterParams) string {
-	// your custom format
-	return fmt.Sprintf("%s %s [%s] %s %s %s\n",
-		colorifyRequestMethod(param.Method),
-		param.Path,
-		param.Request.Proto,
-		colorifySatusCode(param.StatusCode),
-		colorifyRequestLatency(param.Latency),
-		FgRed.coloredString(param.ErrorMessage),
-	)
 }
