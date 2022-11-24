@@ -45,7 +45,6 @@ func TestGormLogger(t *testing.T)  {
     db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
       Logger: ZBlocksGormDebugLogger,
     })
-
     if err != nil {
       log.Println(err)
     }

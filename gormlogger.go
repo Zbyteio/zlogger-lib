@@ -3,7 +3,7 @@ package zlogger
 import (
 	"context"
 	"errors"
-	"log"
+	"fmt"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -17,6 +17,7 @@ import (
 )
 
 type GormLogger struct {
+	LoggerMode                string
 	ZapLogger                 *zap.Logger
 	LogLevel                  gormlogger.LogLevel
 	SlowThreshold             time.Duration
@@ -38,7 +39,7 @@ func NewGormLogger(ginMode string) GormLogger {
 		_config.EncoderConfig = zap.NewDevelopmentEncoderConfig()
 		_config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		_config.Level.SetLevel(zap.DebugLevel)
-	}else {
+	} else {
 		_config = zap.NewProductionConfig()
 		_config.EncoderConfig = zap.NewProductionEncoderConfig()
 		_config.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
@@ -52,27 +53,15 @@ func NewGormLogger(ginMode string) GormLogger {
 	_config.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
 
 	_gormLogger, err = _config.Build(zap.AddCallerSkip(1))
+	if err != nil {
+		panic(err)
+	}
 	defer _gormLogger.Sync()
 
-
-	libraryLogger := _gormLogger.Named("lib.app")
-	if err != nil {
-		// zap logger unable to initialize
-		// use default logger to log this
-		log.Printf("ERROR :: %s", err.Error())
-	}
-
-
-	if gin.Mode() == gin.DebugMode{
-		libraryLogger.Info("creating a [DEBUG-LOGGER] for :: " + gin.Mode())
-	} else {
-		libraryLogger.Info("creating a [JSON-LOGGER] for :: " + gin.Mode())
-	}
-
-
 	return GormLogger{
-		ZapLogger:                 _gormLogger,
-		LogLevel:                  gormlogger.Warn,
+		ZapLogger:                 _gormLogger.Named("gorm"),
+		LoggerMode:                gin.Mode(),
+		LogLevel:                  gormlogger.Info,
 		SlowThreshold:             100 * time.Millisecond,
 		SkipCallerLookup:          false,
 		IgnoreRecordNotFoundError: false,
@@ -83,6 +72,15 @@ func (l GormLogger) SetAsDefault() {
 	gormlogger.Default = l
 }
 
+func (l GormLogger) LogMode(level gormlogger.LogLevel) gormlogger.Interface {
+	return GormLogger{
+		ZapLogger:                 l.ZapLogger,
+		SlowThreshold:             l.SlowThreshold,
+		LogLevel:                  level,
+		SkipCallerLookup:          l.SkipCallerLookup,
+		IgnoreRecordNotFoundError: l.IgnoreRecordNotFoundError,
+	}
+}
 
 func (l GormLogger) Info(ctx context.Context, str string, args ...interface{}) {
 	if l.LogLevel < gormlogger.Info {
@@ -113,19 +111,49 @@ func (l GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (strin
 	switch {
 	case err != nil && l.LogLevel >= gormlogger.Error && (!l.IgnoreRecordNotFoundError || !errors.Is(err, gorm.ErrRecordNotFound)):
 		sql, rows := fc()
-		l.logger().Error("trace", zap.Error(err), zap.Duration("elapsed", elapsed), zap.Int64("rows", rows), zap.String("sql", sql))
+		if l.LoggerMode == gin.DebugMode {
+			formattedError := colorPallet.colorfgRed(err.Error())
+			formattedElapsed := colorifySqlLatency(elapsed, l.SlowThreshold)
+			formattedSql := colorPallet.colorfgMagenta(sql)
+			l.logger().Debug(fmt.Sprintf("error=%stime=%v\trows= %d\tsql=%s", formattedError, formattedElapsed, rows, formattedSql))
+		} else {
+			l.logger().Error("trace",
+				zap.Error(err),
+				zap.Duration("elapsed", elapsed),
+				zap.Int64("rows", rows),
+				zap.String("sql", sql))
+		}
 	case l.SlowThreshold != 0 && elapsed > l.SlowThreshold && l.LogLevel >= gormlogger.Warn:
 		sql, rows := fc()
-		l.logger().Warn("trace", zap.Duration("elapsed", elapsed), zap.Int64("rows", rows), zap.String("sql", sql))
+		if l.LoggerMode == gin.DebugMode {
+			formattedElapsed := colorifySqlLatency(elapsed, l.SlowThreshold)
+			formattedSql := colorPallet.colorfgMagenta(sql)
+			l.logger().Debug(fmt.Sprintf("time=%v\trows=%d\tsql=%s", formattedElapsed, rows, formattedSql))
+			
+		} else {
+			l.logger().Debug("trace",
+				zap.Duration("elapsed", elapsed),
+				zap.Int64("rows", rows),
+				zap.String("sql", sql))
+		}
 	case l.LogLevel >= gormlogger.Info:
 		sql, rows := fc()
-		l.logger().Debug("trace", zap.Duration("elapsed", elapsed), zap.Int64("rows", rows), zap.String("sql", sql))
+		if l.LoggerMode  == gin.DebugMode {
+			formattedElapsed := colorifySqlLatency(elapsed, l.SlowThreshold)
+			formattedSql := colorPallet.colorfgMagenta(sql)
+			l.logger().Debug(fmt.Sprintf("time=%v\trows=%d\tsql=%s", formattedElapsed, rows, formattedSql))
+		} else {
+			l.logger().Debug("trace",
+				zap.Duration("elapsed", elapsed),
+				zap.Int64("rows", rows),
+				zap.String("sql", sql))
+		}
 	}
 }
 
 var (
 	gormPackage    = filepath.Join("gorm.io", "gorm")
-	zapgormPackage = filepath.Join("moul.io", "zapgorm2")
+	zapgormPackage = filepath.Join("github.com", "Zbyteio", "zlogger-lib")
 )
 
 func (l GormLogger) logger() *zap.Logger {
@@ -137,18 +165,8 @@ func (l GormLogger) logger() *zap.Logger {
 		case strings.Contains(file, gormPackage):
 		case strings.Contains(file, zapgormPackage):
 		default:
-			return l.logger().WithOptions(zap.AddCallerSkip(i))
+			return l.ZapLogger.WithOptions(zap.AddCallerSkip(i))
 		}
 	}
-	return l.logger()
-}
-
-func (l GormLogger) LogMode(level gormlogger.LogLevel) gormlogger.Interface {
-	return GormLogger{
-		ZapLogger:                 l.logger(),
-		SlowThreshold:             l.SlowThreshold,
-		LogLevel:                  level,
-		SkipCallerLookup:          l.SkipCallerLookup,
-		IgnoreRecordNotFoundError: l.IgnoreRecordNotFoundError,
-	}
+	return l.ZapLogger
 }
