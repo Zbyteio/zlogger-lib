@@ -5,30 +5,6 @@ import (
 	"time"
 )
 
-// Foreground colors.
-const (
-	fgBlack uint8 = iota + 30
-	fgRed
-	fgGreen
-	fgYellow
-	fgBlue
-	fgMagenta
-	fgCyan
-	fgWhite
-)
-
-// Background colors.
-const (
-	bgBlack uint8 = iota + 40
-	bgRed
-	bgGreen
-	bgYellow
-	bgBlue
-	bgMagenta
-	bgCyan
-	bgWhite
-)
-
 type color struct {
 	fgBlack   uint8
 	fgRed     uint8
