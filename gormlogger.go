@@ -4,9 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"path/filepath"
-	"runtime"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -51,6 +48,8 @@ func NewGormLogger(ginMode string) GormLogger {
 	_config.EncoderConfig.MessageKey = "message"
 	_config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	_config.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
+	_config.DisableCaller = true
+	_config.DisableStacktrace = true
 
 	_gormLogger, err = _config.Build(zap.AddCallerSkip(1))
 	if err != nil {
@@ -86,21 +85,21 @@ func (l GormLogger) Info(ctx context.Context, str string, args ...interface{}) {
 	if l.LogLevel < gormlogger.Info {
 		return
 	}
-	l.logger().Sugar().Debugf(str, args...)
+	l.ZapLogger.Sugar().Debugf(str, args...)
 }
 
 func (l GormLogger) Warn(ctx context.Context, str string, args ...interface{}) {
 	if l.LogLevel < gormlogger.Warn {
 		return
 	}
-	l.logger().Sugar().Warnf(str, args...)
+	l.ZapLogger.Sugar().Warnf(str, args...)
 }
 
 func (l GormLogger) Error(ctx context.Context, str string, args ...interface{}) {
 	if l.LogLevel < gormlogger.Error {
 		return
 	}
-	l.logger().Sugar().Errorf(str, args...)
+	l.ZapLogger.Sugar().Errorf(str, args...)
 }
 
 func (l GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
@@ -115,9 +114,9 @@ func (l GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (strin
 			formattedError := colorPallet.colorfgRed(err.Error())
 			formattedElapsed := colorifySqlLatency(elapsed, l.SlowThreshold)
 			formattedSql := colorPallet.colorfgMagenta(sql)
-			l.logger().Debug(fmt.Sprintf("error=%stime=%v\trows= %d\tsql=%s", formattedError, formattedElapsed, rows, formattedSql))
+			l.ZapLogger.Error(fmt.Sprintf("error=%stime=%v\trows= %d\tsql=%s", formattedError, formattedElapsed, rows, formattedSql))
 		} else {
-			l.logger().Error("trace",
+			l.ZapLogger.Error("trace",
 				zap.Error(err),
 				zap.Duration("elapsed", elapsed),
 				zap.Int64("rows", rows),
@@ -128,10 +127,10 @@ func (l GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (strin
 		if l.LoggerMode == gin.DebugMode {
 			formattedElapsed := colorifySqlLatency(elapsed, l.SlowThreshold)
 			formattedSql := colorPallet.colorfgMagenta(sql)
-			l.logger().Debug(fmt.Sprintf("time=%v\trows=%d\tsql=%s", formattedElapsed, rows, formattedSql))
+			l.ZapLogger.Warn(fmt.Sprintf("time=%v\trows=%d\tsql=%s", formattedElapsed, rows, formattedSql))
 			
 		} else {
-			l.logger().Debug("trace",
+			l.ZapLogger.Debug("trace",
 				zap.Duration("elapsed", elapsed),
 				zap.Int64("rows", rows),
 				zap.String("sql", sql))
@@ -141,32 +140,12 @@ func (l GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (strin
 		if l.LoggerMode  == gin.DebugMode {
 			formattedElapsed := colorifySqlLatency(elapsed, l.SlowThreshold)
 			formattedSql := colorPallet.colorfgMagenta(sql)
-			l.logger().Debug(fmt.Sprintf("time=%v\trows=%d\tsql=%s", formattedElapsed, rows, formattedSql))
+			l.ZapLogger.Debug(fmt.Sprintf("time=%v\trows=%d\tsql=%s", formattedElapsed, rows, formattedSql))
 		} else {
-			l.logger().Debug("trace",
+			l.ZapLogger.Debug("trace",
 				zap.Duration("elapsed", elapsed),
 				zap.Int64("rows", rows),
 				zap.String("sql", sql))
 		}
 	}
-}
-
-var (
-	gormPackage    = filepath.Join("gorm.io", "gorm")
-	zapgormPackage = filepath.Join("github.com", "Zbyteio", "zlogger-lib")
-)
-
-func (l GormLogger) logger() *zap.Logger {
-	for i := 2; i < 15; i++ {
-		_, file, _, ok := runtime.Caller(i)
-		switch {
-		case !ok:
-		case strings.HasSuffix(file, "_test.go"):
-		case strings.Contains(file, gormPackage):
-		case strings.Contains(file, zapgormPackage):
-		default:
-			return l.ZapLogger.WithOptions(zap.AddCallerSkip(i))
-		}
-	}
-	return l.ZapLogger
 }

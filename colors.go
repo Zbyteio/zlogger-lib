@@ -71,28 +71,28 @@ func init() {
 }
 
 func (c color) colorfgBlack(value interface{}) string {
-	return fmt.Sprintf("\x1b[%d;%dm %v \x1b[0m", c.fgBlack, 1, value)
+	return fmt.Sprintf("\x1b[%d;%dm%v\x1b[0m", c.fgBlack, 1, value)
 }
 func (c color) colorfgRed(value interface{}) string {
-	return fmt.Sprintf("\x1b[%d;%dm %v \x1b[0m", c.fgRed, 1, value)
+	return fmt.Sprintf("\x1b[%d;%dm%v\x1b[0m", c.fgRed, 1, value)
 }
 func (c color) colorfgGreen(value interface{}) string {
-	return fmt.Sprintf("\x1b[%d;%dm %v \x1b[0m", c.fgGreen, 1, value)
+	return fmt.Sprintf("\x1b[%d;%dm%v\x1b[0m", c.fgGreen, 1, value)
 }
 func (c color) colorfgYellow(value interface{}) string {
-	return fmt.Sprintf("\x1b[%d;%dm %v \x1b[0m", c.fgYellow, 1, value)
+	return fmt.Sprintf("\x1b[%d;%dm%v\x1b[0m", c.fgYellow, 1, value)
 }
 func (c color) colorfgBlue(value interface{}) string {
-	return fmt.Sprintf("\x1b[%d;%dm %v \x1b[0m", c.fgBlue, 1, value)
+	return fmt.Sprintf("\x1b[%d;%dm%v\x1b[0m", c.fgBlue, 1, value)
 }
 func (c color) colorfgMagenta(value interface{}) string {
-	return fmt.Sprintf("\x1b[%d;%dm %v \x1b[0m", c.fgMagenta, 1, value)
+	return fmt.Sprintf("\x1b[%d;%dm%v\x1b[0m", c.fgMagenta, 1, value)
 }
 func (c color) colorfgCyan(value interface{}) string {
-	return fmt.Sprintf("\x1b[%d;%dm %v \x1b[0m", c.fgCyan, 1, value)
+	return fmt.Sprintf("\x1b[%d;%dm%v\x1b[0m", c.fgCyan, 1, value)
 }
 func (c color) colorfgWhite(value interface{}) string {
-	return fmt.Sprintf("\x1b[%d;%dm %v \x1b[0m", c.fgWhite, 1, value)
+	return fmt.Sprintf("\x1b[%d;%dm%v\x1b[0m", c.fgWhite, 1, value)
 }
 
 func (c color) colorbgBlack(value interface{}) string {
