@@ -18,12 +18,12 @@ type ginLogger struct {
  *zap.Logger
 }
 
-func NewGinLogger(ginMode LogEnvironment) GinLogger {
+func NewGinLogger(ginMode string) GinLogger {
 	// create a new zap logger
 	var err error
 	var config zap.Config
 	var _ginLogger *zap.Logger
-	gin.SetMode(string(ginMode))
+	gin.SetMode(ginMode)
 
 	if gin.Mode() == gin.DebugMode {
 		config = zap.NewDevelopmentConfig()
@@ -53,14 +53,14 @@ func NewGinLogger(ginMode LogEnvironment) GinLogger {
 	}
 
 
-	libraryLogger := _ginLogger.Named("library.ginlogger")
+	libraryLogger := _ginLogger.Named("lib.gin")
 	if gin.Mode() == gin.DebugMode {
 		libraryLogger.Info("creating a [DEBUG-LOGGER] for :: " + gin.Mode())
 	} else {
 		libraryLogger.Info("creating a [JSON-LOGGER] for :: " + gin.Mode())
 	}
 
-	var newGinLogger GinLogger = ginLogger{_ginLogger.Named("ginlogger")}
+	var newGinLogger GinLogger = ginLogger{_ginLogger.Named("gin")}
 
 	// set logger function to 
 	// print routes for this logger
