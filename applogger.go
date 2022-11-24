@@ -94,7 +94,7 @@ func NewZlogger() (AppLogger){
 	defer _appLogger.Sync()
 
 
-	libraryLogger := _appLogger.Named("library.zlogger.applogger")
+	libraryLogger := _appLogger.Named("library.applogger")
 	if err != nil {
 		// zap logger unable to initialize
 		// use default logger to log this
@@ -107,5 +107,5 @@ func NewZlogger() (AppLogger){
 	} else {
 		libraryLogger.Info("creating a [JSON-LOGGER] for :: " + gin.Mode())
 	}
-	return &appLogger{_appLogger}
+	return &appLogger{_appLogger.Named("applogger")}
 }

@@ -2,18 +2,12 @@
 package zlogger
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 	"unicode"
 )
 
 // ---------------------- INTERNAL --------------------------------------
-
-
-func (c color) coloredString(value string) string {
-	return fmt.Sprintf("\x1b[%d;%dm %s \x1b[0m", c, 1, value)
-}
 
 func colorifySatusCode(statusCode int) string {
 	var statusCodeString string = strconv.Itoa(statusCode)

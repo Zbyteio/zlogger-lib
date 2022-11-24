@@ -51,14 +51,14 @@ func NewGinLogger() GinLogger {
 	}
 
 
-	libraryLogger := _ginLogger.Named("library.zlogger.ginlogger")
+	libraryLogger := _ginLogger.Named("library.ginlogger")
 	if gin.Mode() == gin.DebugMode{
 		libraryLogger.Info("creating a [DEBUG-LOGGER] for :: " + gin.Mode())
 	} else {
 		libraryLogger.Info("creating a [JSON-LOGGER] for :: " + gin.Mode())
 	}
 
-	var newGinLogger GinLogger = ginLogger{_ginLogger}
+	var newGinLogger GinLogger = ginLogger{_ginLogger.Named("ginlogger")}
 
 	// set logger function to 
 	// print routes for this logger

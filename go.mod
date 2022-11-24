@@ -8,7 +8,7 @@ require (
 	go.uber.org/zap v1.23.0
 )
 
-require github.com/jinzhu/now v1.1.4 // indirect
+require github.com/jinzhu/now v1.1.5 // indirect
 
 require (
 	github.com/gin-contrib/sse v0.1.0 // indirect
@@ -32,5 +32,4 @@ require (
 	golang.org/x/text v0.4.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gorm.io/gorm v1.24.2
 )
