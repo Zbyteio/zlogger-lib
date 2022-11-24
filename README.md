@@ -7,5 +7,5 @@
 - Debug
 
 ## TODO 
-- [X] Add named logger for database and http requests.
-- [X] Add custom log levels if required later
+- [ ] remove setting of gin mode, maintain local state instead
+- [ ] Add custom log levels if required later
