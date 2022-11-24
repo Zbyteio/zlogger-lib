@@ -67,10 +67,12 @@ func NewZloggerForTest() (AppLogger, *observer.ObservedLogs) {
 	return &appLogger{testLogger}, recorded
 }
 
-func NewZlogger() (AppLogger){
+func NewZlogger(ginMode LogEnvironment) (AppLogger){
 	var err error
 	var _config zap.Config
 	var _appLogger *zap.Logger
+
+	gin.SetMode(string(ginMode))
 
 	if gin.Mode() == gin.DebugMode {
 		_config = zap.NewDevelopmentConfig()

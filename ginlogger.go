@@ -18,11 +18,12 @@ type ginLogger struct {
  *zap.Logger
 }
 
-func NewGinLogger() GinLogger {
+func NewGinLogger(ginMode LogEnvironment) GinLogger {
 	// create a new zap logger
 	var err error
 	var config zap.Config
 	var _ginLogger *zap.Logger
+	gin.SetMode(string(ginMode))
 
 	if gin.Mode() == gin.DebugMode {
 		config = zap.NewDevelopmentConfig()
@@ -41,6 +42,7 @@ func NewGinLogger() GinLogger {
 	config.EncoderConfig.MessageKey = "message"
 	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	config.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
+	config.DisableCaller = true
 
 	_ginLogger, err = config.Build(zap.AddCallerSkip(1))
 	defer _ginLogger.Sync()
@@ -52,7 +54,7 @@ func NewGinLogger() GinLogger {
 
 
 	libraryLogger := _ginLogger.Named("library.ginlogger")
-	if gin.Mode() == gin.DebugMode{
+	if gin.Mode() == gin.DebugMode {
 		libraryLogger.Info("creating a [DEBUG-LOGGER] for :: " + gin.Mode())
 	} else {
 		libraryLogger.Info("creating a [JSON-LOGGER] for :: " + gin.Mode())
