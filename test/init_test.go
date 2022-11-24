@@ -15,14 +15,20 @@ var (
 
   ZBlocksGinDebugLogger zlogger.GinLogger
   ZBlocksGinReleaseLogger zlogger.GinLogger
+
+  ZBlocksGormDebugLogger zlogger.GormLogger
+  ZBlocksGormReleaseLogger zlogger.GormLogger
 )
 
 func init(){
   ZBlocksAppDebugLogger = zlogger.NewZlogger(gin.DebugMode)
   ZBlocksAppReleaseLogger = zlogger.NewZlogger(gin.ReleaseMode)
+  
   ZBlocksGinDebugLogger = zlogger.NewGinLogger(gin.DebugMode)
   ZBlocksGinReleaseLogger = zlogger.NewGinLogger(gin.ReleaseMode)
 
+  ZBlocksGormDebugLogger = zlogger.NewGormLogger(gin.DebugMode)
+  ZBlocksGormReleaseLogger = zlogger.NewGormLogger(gin.ReleaseMode)
 }
 
 func createServer() (*gin.Engine, *http.Server){
