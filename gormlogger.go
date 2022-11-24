@@ -51,7 +51,7 @@ func (gl gormLogger)Print(values ...interface{}) {
 
 	if values[0].(string) == "sql" {
 		// duration
-		messages = append(messages, FgCyan.coloredString(
+		messages = append(messages, fgCyan.coloredString(
 			fmt.Sprintf("%.2f", float64(values[2].(time.Duration).Nanoseconds()/1e4)/100.0)))
 		// sql
 
@@ -108,7 +108,7 @@ func (gl gormLogger)Print(values ...interface{}) {
 		}
 
 		messages = append(messages, sql)
-		messages = append(messages, "\n", FgCyan.coloredString(fmt.Sprintf("%v", strconv.FormatInt(values[5].(int64), 10)+" rows affected or returned")))
+		messages = append(messages, "\n", fgCyan.coloredString(fmt.Sprintf("%v", strconv.FormatInt(values[5].(int64), 10)+" rows affected or returned")))
 	} else {
 		messages = append(messages, values[2:]...)
 	}

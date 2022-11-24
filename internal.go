@@ -18,44 +18,44 @@ func (c color) coloredString(value string) string {
 func colorifySatusCode(statusCode int) string {
 	var statusCodeString string = strconv.Itoa(statusCode)
 	if statusCode >= 500 {
-		return FgRed.coloredString(statusCodeString)
+		return fgRed.coloredString(statusCodeString)
 	} else if statusCode >= 400 {
-		return FgYellow.coloredString(statusCodeString)
+		return fgYellow.coloredString(statusCodeString)
 	} else if statusCode >= 300 {
-		return FgCyan.coloredString(statusCodeString)
+		return fgCyan.coloredString(statusCodeString)
 	} else if statusCode >= 200 {
-		return FgGreen.coloredString(statusCodeString)
+		return fgGreen.coloredString(statusCodeString)
 	}
 	// default value
-	return FgWhite.coloredString(statusCodeString)
+	return fgWhite.coloredString(statusCodeString)
 }
 
 func colorifyRequestMethod(methodName string) string {
 	switch methodName {
 	case "GET":
-		return BgGreen.coloredString(methodName)
+		return bgGreen.coloredString(methodName)
 	case "POST":
-		return BgYellow.coloredString(methodName)
+		return bgYellow.coloredString(methodName)
 	case "PUT":
-		return BgBlue.coloredString(methodName)
+		return bgBlue.coloredString(methodName)
 	case "DELETE":
-		return BgRed.coloredString(methodName)
+		return bgRed.coloredString(methodName)
 	case "OPTION":
-		return BgCyan.coloredString(methodName)
+		return bgCyan.coloredString(methodName)
 	case "PATCH":
-		return BgMagenta.coloredString(methodName)
+		return bgMagenta.coloredString(methodName)
 	default:
-		return BgWhite.coloredString(methodName)
+		return bgWhite.coloredString(methodName)
 	}
 }
 
 func colorifyRequestLatency(latency time.Duration) string {
 	if latency < time.Second {
-		return FgGreen.coloredString(latency.String())
+		return fgGreen.coloredString(latency.String())
 	} else if latency < time.Second*2 {
-		return FgYellow.coloredString(latency.String())
+		return fgYellow.coloredString(latency.String())
 	}
-	return FgRed.coloredString(latency.String())
+	return fgRed.coloredString(latency.String())
 }
 
 

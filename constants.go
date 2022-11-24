@@ -2,33 +2,26 @@ package zlogger
 
 // Foreground colors.
 const (
-	FgBlack color = iota + 30
-	FgRed
-	FgGreen
-	FgYellow
-	FgBlue
-	FgMagenta
-	FgCyan
-	FgWhite
+	fgBlack color = iota + 30
+	fgRed
+	fgGreen
+	fgYellow
+	fgBlue
+	fgMagenta
+	fgCyan
+	fgWhite
 )
 
 // Background colors.
 const (
-	BgBlack color = iota + 40
-	BgRed
-	BgGreen
-	BgYellow
-	BgBlue
-	BgMagenta
-	BgCyan
-	BgWhite
+	bgBlack color = iota + 40
+	bgRed
+	bgGreen
+	bgYellow
+	bgBlue
+	bgMagenta
+	bgCyan
+	bgWhite
 )
 
 type color uint8
-
-const (
-	Production  LogEnvironment = "production"
-	Local       LogEnvironment = "local"
-)
-
-type LogEnvironment string

@@ -69,40 +69,43 @@ func NewZloggerForTest() (AppLogger, *observer.ObservedLogs) {
 
 func NewZlogger() (AppLogger){
 	var err error
-	var config zap.Config
-	var localLogger *zap.Logger
+	var _config zap.Config
+	var _appLogger *zap.Logger
 
 	if gin.Mode() == gin.DebugMode {
-		config = zap.NewDevelopmentConfig()
-		config.EncoderConfig = zap.NewDevelopmentEncoderConfig()
-		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-		config.Level.SetLevel(zap.DebugLevel)
+		_config = zap.NewDevelopmentConfig()
+		_config.EncoderConfig = zap.NewDevelopmentEncoderConfig()
+		_config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		_config.Level.SetLevel(zap.DebugLevel)
 	}else {
-		config = zap.NewProductionConfig()
-		config.EncoderConfig = zap.NewProductionEncoderConfig()
-		config.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
-		config.Level.SetLevel(zap.InfoLevel)
+		_config = zap.NewProductionConfig()
+		_config.EncoderConfig = zap.NewProductionEncoderConfig()
+		_config.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
+		_config.Level.SetLevel(zap.InfoLevel)
 	}
-	config.EncoderConfig.TimeKey = "time"
-	config.EncoderConfig.CallerKey = "filePath"
-	config.EncoderConfig.LevelKey = "logLevel"
-	config.EncoderConfig.MessageKey = "message"
-	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	config.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
+	_config.EncoderConfig.TimeKey = "time"
+	_config.EncoderConfig.CallerKey = "filePath"
+	_config.EncoderConfig.LevelKey = "logLevel"
+	_config.EncoderConfig.MessageKey = "message"
+	_config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	_config.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
 
-	localLogger, err = config.Build(zap.AddCallerSkip(1))
+	_appLogger, err = _config.Build(zap.AddCallerSkip(1))
+	defer _appLogger.Sync()
+
+
+	libraryLogger := _appLogger.Named("library.zlogger.applogger")
 	if err != nil {
 		// zap logger unable to initialize
 		// use default logger to log this
 		log.Printf("ERROR :: %s", err.Error())
 	}
 
+
 	if gin.Mode() == gin.DebugMode{
-		localLogger.Info("creating a debug-logger for: " + gin.Mode())
+		libraryLogger.Info("creating a [DEBUG-LOGGER] for :: " + gin.Mode())
 	} else {
-		localLogger.Info("creating a json-logger for: " + gin.Mode())
+		libraryLogger.Info("creating a [JSON-LOGGER] for :: " + gin.Mode())
 	}
-
-
-	return &appLogger{localLogger}
+	return &appLogger{_appLogger}
 }
