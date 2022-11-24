@@ -22,12 +22,12 @@ func TestLogger(t *testing.T)  {
     ginEng.Use(
       ZBlocksGinDebugLogger.GinRequestLoggerMiddleware(),
     )
-    ginEng.GET("/", func(c *gin.Context) {
+    ginEng.GET("/abc", func(c *gin.Context) {
       c.String(http.StatusOK, "Welcome Gin Server")
     })
 
     go runServerAndClose(ginSrv)
-    resp, err := http.Get("http://localhost:8080")
+    resp, err := http.Get("http://localhost:8080/abc")
     if err != nil {
       log.Panicln(err)
     }

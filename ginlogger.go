@@ -3,7 +3,6 @@ package zlogger
 import (
 	"fmt"
 	"log"
-	"net/url"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -71,11 +70,7 @@ func (gl ginLogger) GinRequestLoggerMiddleware() gin.HandlerFunc {
 
 	if gin.Mode() == gin.DebugMode {
 		return func(c *gin.Context) {
-			reqUrl, err := url.JoinPath(c.Request.Host, c.Request.RequestURI)
-			if err != nil {
-				gl.Error(fmt.Sprintf("cannot parse request url invoked : [HOST :: %s] [PATH :: %s]", c.Request.Host, c.Request.RequestURI))
-			}
-		
+			reqUrl := fmt.Sprintf("%s%s", c.Request.Host, c.Request.URL.String())
 			start := time.Now()
 			// Before calling handler
 			c.Next()
@@ -95,18 +90,14 @@ func (gl ginLogger) GinRequestLoggerMiddleware() gin.HandlerFunc {
 		}
 	} else {
 		return func(c *gin.Context) {
-			reqUrl, err := url.JoinPath(c.Request.Host, c.Request.RequestURI)
-			if err != nil {
-				gl.Error(fmt.Sprintf("cannot parse request url invoked : [HOST :: %s] [PATH :: %s]", c.Request.Host, c.Request.RequestURI))
-			}
-		
+			reqUrl := fmt.Sprintf("%s%s", c.Request.Host, c.Request.URL.String())	
 			start := time.Now()
 			// Before calling handler
 			c.Next()
 			stop := time.Now()
 			// After calling handler
 			// create color coding for status codes
-				gl.Named(c.Request.Proto).Info("",
+			gl.Named(c.Request.Proto).Info("",
 				zap.Int("statusCode", c.Writer.Status()),
 				zap.String("requestMethod", c.Request.Method),
 				zap.String("requestUrl", reqUrl),
