@@ -72,9 +72,12 @@ func NewZlogger(ginMode string) (AppLogger){
 	var _config zap.Config
 	var _appLogger *zap.Logger
 
-	gin.SetMode(ginMode)
+	if (ginMode == gin.DebugMode || ginMode == gin.TestMode || ginMode == gin.ReleaseMode) {
+		log.Println("ERROR :: cannot parse gin mode")
+		return nil
+	}
 
-	if gin.Mode() == gin.DebugMode {
+	if ginMode == gin.DebugMode {
 		_config = zap.NewDevelopmentConfig()
 		_config.EncoderConfig = zap.NewDevelopmentEncoderConfig()
 		_config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
@@ -104,7 +107,7 @@ func NewZlogger(ginMode string) (AppLogger){
 	}
 
 
-	if gin.Mode() == gin.DebugMode{
+	if ginMode == gin.DebugMode{
 		libraryLogger.Info("creating a [DEBUG-LOGGER] for :: " + gin.Mode())
 	} else {
 		libraryLogger.Info("creating a [JSON-LOGGER] for :: " + gin.Mode())

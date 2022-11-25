@@ -23,9 +23,13 @@ func NewGinLogger(ginMode string) GinLogger {
 	var err error
 	var config zap.Config
 	var _ginLogger *zap.Logger
-	gin.SetMode(ginMode)
 
-	if gin.Mode() == gin.DebugMode {
+	if (ginMode == gin.DebugMode || ginMode == gin.TestMode || ginMode == gin.ReleaseMode) {
+		log.Println("ERROR :: cannot parse gin mode")
+		return nil
+	}
+
+	if ginMode == gin.DebugMode {
 		config = zap.NewDevelopmentConfig()
 		config.EncoderConfig = zap.NewDevelopmentEncoderConfig()
 		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder

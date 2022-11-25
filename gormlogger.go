@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -29,9 +30,12 @@ func NewGormLogger(ginMode string) GormLogger {
 	var _config zap.Config
 	var _gormLogger *zap.Logger
 
-	gin.SetMode(ginMode)
+	if (ginMode == gin.DebugMode || ginMode == gin.TestMode || ginMode == gin.ReleaseMode) {
+		log.Println("ERROR :: cannot parse gin mode")
+		return GormLogger{}
+	}
 
-	if gin.Mode() == gin.DebugMode {
+	if ginMode == gin.DebugMode {
 		_config = zap.NewDevelopmentConfig()
 		_config.EncoderConfig = zap.NewDevelopmentEncoderConfig()
 		_config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
@@ -59,7 +63,7 @@ func NewGormLogger(ginMode string) GormLogger {
 
 	return GormLogger{
 		ZapLogger:                 _gormLogger.Named("gorm"),
-		LoggerMode:                gin.Mode(),
+		LoggerMode:                ginMode,
 		LogLevel:                  gormlogger.Info,
 		SlowThreshold:             100 * time.Millisecond,
 		SkipCallerLookup:          false,
