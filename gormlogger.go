@@ -30,7 +30,7 @@ func NewGormLogger(ginMode string) GormLogger {
 	var _config zap.Config
 	var _gormLogger *zap.Logger
 
-	if (ginMode == gin.DebugMode || ginMode == gin.TestMode || ginMode == gin.ReleaseMode) {
+	if !(ginMode == gin.DebugMode || ginMode == gin.TestMode || ginMode == gin.ReleaseMode) {
 		log.Println("ERROR :: cannot parse gin mode")
 		return GormLogger{}
 	}

@@ -24,7 +24,7 @@ func NewGinLogger(ginMode string) GinLogger {
 	var config zap.Config
 	var _ginLogger *zap.Logger
 
-	if (ginMode == gin.DebugMode || ginMode == gin.TestMode || ginMode == gin.ReleaseMode) {
+	if !(ginMode == gin.DebugMode || ginMode == gin.TestMode || ginMode == gin.ReleaseMode) {
 		log.Println("ERROR :: cannot parse gin mode")
 		return nil
 	}
@@ -56,10 +56,10 @@ func NewGinLogger(ginMode string) GinLogger {
 	}
 
 	libraryLogger := _ginLogger.Named("lib.gin")
-	if gin.Mode() == gin.DebugMode {
-		libraryLogger.Info("creating a [DEBUG-LOGGER] for :: " + gin.Mode())
+	if ginMode == gin.DebugMode {
+		libraryLogger.Info("creating a [DEBUG-LOGGER] for :: " + ginMode)
 	} else {
-		libraryLogger.Info("creating a [JSON-LOGGER] for :: " + gin.Mode())
+		libraryLogger.Info("creating a [JSON-LOGGER] for :: " + ginMode)
 	}
 
 	var newGinLogger GinLogger = ginLogger{_ginLogger.Named("gin")}
