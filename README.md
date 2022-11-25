@@ -8,6 +8,10 @@
 
 ## Usage
 
+Fetch the latest version of zlogger-lib
+```
+GOPROXY=https://proxy.golang.org GO111MODULE=on go get github.com/Zbyteio/zlogger-lib@v1.1.0
+```
 ### Create an app logger
 
 
