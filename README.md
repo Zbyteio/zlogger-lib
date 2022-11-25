@@ -10,7 +10,7 @@
 
 ### Create an app logger
 
-`
+
 
     appLogger := zlogger.NewZlogger(gin.DebugMode)
 
@@ -18,11 +18,11 @@
 
     ZBlocksAppDebugLogger.Debugf("%s", "success print debug via applogger[DEBUG]")
 
-`
+
 
 ### Create a gin logger
 
-`
+
     
     ginLogger := zlogger.NewGinLogger(gin.DebugMode)
 
@@ -36,11 +36,11 @@
     ginEng.GET("/abc", func(c *gin.Context) {
       c.String(http.StatusOK, "Welcome Gin Server")
     })
-`
+
 
 ### Create an app logger
 
-`
+
     
     gormLogger := zlogger.NewGormLogger(gin.DebugMode)
 
@@ -50,7 +50,7 @@
     db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
       Logger: ZBlocksGormDebugLogger,
     })
-`
+
 
 ## TODO 
 - [X] remove setting of gin mode, maintain local state instead
