@@ -11,7 +11,6 @@ import (
 func TestGormLogger(t *testing.T)  {
   t.Run("test gorm logger", func(t *testing.T) {
     dsn := "host=localhost\nuser=postgres\npassword=foxbat\ndbname=postgres\nport=5432\nsslmode=disable\nTimeZone=Asia/Shanghai"
-    ZBlocksGormDebugLogger.SetAsDefault()
     db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
       Logger: ZBlocksGormDebugLogger,
     })

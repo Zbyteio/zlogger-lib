@@ -1,5 +1,10 @@
 package zlogger
 
+/* DOCS -
+for dev mode only
+not accesable outside the package
+*/
+
 import (
 	"fmt"
 	"time"

@@ -4,12 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
 )
@@ -23,57 +21,38 @@ type GormLogger struct {
 	IgnoreRecordNotFoundError bool
 }
 
-func NewGormLogger(ginMode string) GormLogger {
+func SetupGormLogger(loggerConfig loggerConfig) {
+	loggerConfig.config.DisableCaller = true
+	loggerConfig.config.DisableStacktrace = true
+	
+	_libLogger := generateZapLogger(&loggerConfig.config, "lib")
+	_gormLogger := generateZapLogger(&loggerConfig.config, "gorm")
 
-	// create a zap logger
-	var err error
-	var _config zap.Config
-	var _gormLogger *zap.Logger
 
-	if !(ginMode == gin.DebugMode || ginMode == gin.TestMode || ginMode == gin.ReleaseMode) {
-		log.Println("ERROR :: cannot parse gin mode")
-		return GormLogger{}
-	}
-
-	if ginMode == gin.DebugMode {
-		_config = zap.NewDevelopmentConfig()
-		_config.EncoderConfig = zap.NewDevelopmentEncoderConfig()
-		_config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-		_config.Level.SetLevel(zap.DebugLevel)
-	} else {
-		_config = zap.NewProductionConfig()
-		_config.EncoderConfig = zap.NewProductionEncoderConfig()
-		_config.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
-		_config.Level.SetLevel(zap.InfoLevel)
-	}
-	_config.EncoderConfig.TimeKey = "time"
-	_config.EncoderConfig.CallerKey = "filePath"
-	_config.EncoderConfig.LevelKey = "logLevel"
-	_config.EncoderConfig.MessageKey = "message"
-	_config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	_config.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
-	_config.DisableCaller = true
-	_config.DisableStacktrace = true
-
-	_gormLogger, err = _config.Build(zap.AddCallerSkip(1))
-	if err != nil {
-		panic(err)
-	}
-	defer _gormLogger.Sync()
-
-	return GormLogger{
-		ZapLogger:                 _gormLogger.Named("gorm"),
-		LoggerMode:                ginMode,
+	gormLogger := GormLogger{
+		ZapLogger:                 _gormLogger,
+		LoggerMode:                gin.DebugMode,
 		LogLevel:                  gormlogger.Info,
 		SlowThreshold:             100 * time.Millisecond,
 		SkipCallerLookup:          false,
 		IgnoreRecordNotFoundError: false,
 	}
+
+
+
+	if loggerConfig.loggerType == DEBUG_LOGGER {
+		_libLogger.Info("created a [DEBUG-GIN-LOGGER] with logger-name :: " + loggerConfig.loggerName)
+	} else if loggerConfig.loggerType == JSON_LOGGER {
+		gormLogger.LoggerMode = gin.ReleaseMode
+		_libLogger.Info("created a [JSON-GIN-LOGGER] with logger-name :: " + loggerConfig.loggerName)
+	}
+	gormlogger.Default = gormLogger
 }
 
-func (l GormLogger) SetAsDefault() {
-	gormlogger.Default = l
-}
+// try to accomodate this in NewGormLogger func
+// func (l GormLogger) SetAsDefault() {
+// 	gormlogger.Default = l
+// }
 
 func (l GormLogger) LogMode(level gormlogger.LogLevel) gormlogger.Interface {
 	return GormLogger{

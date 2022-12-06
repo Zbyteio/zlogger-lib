@@ -2,76 +2,39 @@ package zlogger
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
+
+var _ginLogger GinLogger
 
 type GinLogger interface {
 	ginDebugLogger(httpMethod, absolutePath, handlerName string, nuHandlers int)
 	GinRequestLoggerMiddleware() gin.HandlerFunc
 }
+
 type ginLogger struct {
 	*zap.Logger
 }
 
-func NewGinLogger(ginMode string) GinLogger {
-	// create a new zap logger
-	var err error
-	var config zap.Config
-	var _ginLogger *zap.Logger
+func NewGinLogger(loggerConfig loggerConfig) GinLogger {
+	_libLogger := generateZapLogger(&loggerConfig.config, "lib")
+	_ginLogger = &ginLogger{generateZapLogger(&loggerConfig.config, loggerConfig.loggerName)}
 
-	if !(ginMode == gin.DebugMode || ginMode == gin.TestMode || ginMode == gin.ReleaseMode) {
-		log.Println("ERROR :: cannot parse gin mode")
-		return nil
+	if loggerConfig.loggerType == DEBUG_LOGGER {
+		_libLogger.Info("created a [DEBUG-GIN-LOGGER] with logger-name :: " + loggerConfig.loggerName)
+	} else if loggerConfig.loggerType == JSON_LOGGER {
+		_libLogger.Info("created a [JSON-GIN-LOGGER] with logger-name :: " + loggerConfig.loggerName)
 	}
-
-	if ginMode == gin.DebugMode {
-		config = zap.NewDevelopmentConfig()
-		config.EncoderConfig = zap.NewDevelopmentEncoderConfig()
-		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-		config.Level.SetLevel(zap.DebugLevel)
-	} else {
-		config = zap.NewProductionConfig()
-		config.EncoderConfig = zap.NewProductionEncoderConfig()
-		config.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
-		config.Level.SetLevel(zap.InfoLevel)
-	}
-	config.EncoderConfig.TimeKey = "time"
-	config.EncoderConfig.CallerKey = "filePath"
-	config.EncoderConfig.LevelKey = "logLevel"
-	config.EncoderConfig.MessageKey = "message"
-	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	config.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
-	config.DisableCaller = true
-	_ginLogger, err = config.Build()
-	defer _ginLogger.Sync()
-	if err != nil {
-		// zap logger unable to initialize
-		// use default logger to log this
-		log.Printf("ERROR :: %s", err.Error())
-	}
-
-	libraryLogger := _ginLogger.Named("lib.gin")
-	if ginMode == gin.DebugMode {
-		libraryLogger.Info("creating a [DEBUG-LOGGER] for :: " + ginMode)
-	} else {
-		libraryLogger.Info("creating a [JSON-LOGGER] for :: " + ginMode)
-	}
-
-	var newGinLogger GinLogger = ginLogger{_ginLogger.Named("gin")}
-
 	// set logger function to
 	// print routes for this logger
-	gin.DebugPrintRouteFunc = newGinLogger.ginDebugLogger
-	return newGinLogger
+	gin.DebugPrintRouteFunc = _ginLogger.ginDebugLogger
+	return _ginLogger
 }
 
 func (gl ginLogger) GinRequestLoggerMiddleware() gin.HandlerFunc {
-
 	if gin.Mode() == gin.DebugMode {
 		return func(c *gin.Context) {
 			reqUrl := fmt.Sprintf("%s%s", c.Request.Host, c.Request.URL.String())
@@ -113,5 +76,6 @@ func (gl ginLogger) GinRequestLoggerMiddleware() gin.HandlerFunc {
 
 // for printing all the routes defined in gin
 func (gl ginLogger) ginDebugLogger(httpMethod, absolutePath, handlerName string, nuHandlers int) {
+	// TODO: remove color coding in release mode
 	gl.Info(fmt.Sprintf("%s\t%s", colorifyRequestMethod(httpMethod), absolutePath))
 }

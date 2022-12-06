@@ -2,13 +2,18 @@ package zlogger
 
 import (
 	"fmt"
-	"log"
 
-	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
 )
+
+var _appLogger AppLogger
+
+
+type appLogger struct {
+	*zap.Logger
+}
 
 // Logger is a logger that supports log levels, context and structured logging.
 type AppLogger interface {
@@ -31,23 +36,19 @@ type AppLogger interface {
 	Errorf(template string, args ...interface{})
 }
 
-type appLogger struct {
-	*zap.Logger
-}
-
 func (l *appLogger) Debugf(template string, args ...interface{}) {
-	errorString := fmt.Sprintf(template, args...)
-	l.Debug(errorString)
+	debugString := fmt.Sprintf(template, args...)
+	l.Debug(debugString)
 }
 
 func (l *appLogger) Infof(template string, args ...interface{}) {
-	errorString := fmt.Sprintf(template, args...)
-	l.Info(errorString)
+	infoString := fmt.Sprintf(template, args...)
+	l.Info(infoString)
 }
 
 func (l *appLogger) Warnf(template string, args ...interface{}) {
-	errorString := fmt.Sprintf(template, args...)
-	l.Warn(errorString)
+	warnString := fmt.Sprintf(template, args...)
+	l.Warn(warnString)
 }
 
 func (l *appLogger) Errorf(template string, args ...interface{}) {
@@ -56,7 +57,7 @@ func (l *appLogger) Errorf(template string, args ...interface{}) {
 }
 
 // NewZloggerForTest returns a new logger and the corresponding observed logs which can be used in unit tests to verify log entries.
-func NewZloggerForTest() (AppLogger, *observer.ObservedLogs) {
+func NewAppLoggerForTest() (AppLogger, *observer.ObservedLogs) {
 	var testLogger *zap.Logger
 	var testCore zapcore.Core
 	var recorded *observer.ObservedLogs
@@ -67,50 +68,28 @@ func NewZloggerForTest() (AppLogger, *observer.ObservedLogs) {
 	return &appLogger{testLogger}, recorded
 }
 
-func NewZlogger(ginMode string) (AppLogger){
-	var err error
-	var _config zap.Config
-	var _appLogger *zap.Logger
+/*
+* loggerConfig.loggerType - debug / json
+* loggerName - name of the logger ("app" :default) 
+*/
+func NewAppLogger(loggerConfig loggerConfig) (AppLogger){
+	_libLogger := generateZapLogger(&loggerConfig.config, "lib")
+	_appLogger = &appLogger{generateZapLogger(&loggerConfig.config, loggerConfig.loggerName)}
 
-	if !(ginMode == gin.DebugMode || ginMode == gin.TestMode || ginMode == gin.ReleaseMode) {
-		log.Println("ERROR :: cannot parse gin mode")
-		return nil
+	if loggerConfig.loggerType == DEBUG_LOGGER {
+		_libLogger.Info("created a [DEBUG-APP-LOGGER] with logger-name :: " + loggerConfig.loggerName)
+	} else if loggerConfig.loggerType == JSON_LOGGER {
+		_libLogger.Info("created a [JSON-APP-LOGGER] with logger-name :: " + loggerConfig.loggerName)
 	}
+	return _appLogger
+}
 
-	if ginMode == gin.DebugMode {
-		_config = zap.NewDevelopmentConfig()
-		_config.EncoderConfig = zap.NewDevelopmentEncoderConfig()
-		_config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-		_config.Level.SetLevel(zap.DebugLevel)
-	}else {
-		_config = zap.NewProductionConfig()
-		_config.EncoderConfig = zap.NewProductionEncoderConfig()
-		_config.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
-		_config.Level.SetLevel(zap.InfoLevel)
+func GetAppLogger()(AppLogger) {
+	// return if already initialized
+	if(_appLogger == nil) {
+		return _appLogger
 	}
-	_config.EncoderConfig.TimeKey = "time"
-	_config.EncoderConfig.CallerKey = "filePath"
-	_config.EncoderConfig.LevelKey = "logLevel"
-	_config.EncoderConfig.MessageKey = "message"
-	_config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	_config.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
-
-	_appLogger, err = _config.Build(zap.AddCallerSkip(1))
-	defer _appLogger.Sync()
-
-
-	libraryLogger := _appLogger.Named("lib.app")
-	if err != nil {
-		// zap logger unable to initialize
-		// use default logger to log this
-		log.Printf("ERROR :: %s", err.Error())
-	}
-
-
-	if ginMode == gin.DebugMode{
-		libraryLogger.Info("creating a [DEBUG-LOGGER] for :: " + ginMode)
-	} else {
-		libraryLogger.Info("creating a [JSON-LOGGER] for :: " + ginMode)
-	}
-	return &appLogger{_appLogger.Named("app")}
+	logConfig := NewLoggerConfig("app", DEBUG_LOGGER, zapcore.DebugLevel)
+	logger := NewAppLogger(logConfig)
+	return logger
 }

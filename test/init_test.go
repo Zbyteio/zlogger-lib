@@ -8,6 +8,7 @@ import (
 
 	"github.com/Zbyteio/zlogger-lib"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap/zapcore"
 )
 var (
   ZBlocksAppDebugLogger zlogger.AppLogger
@@ -21,14 +22,16 @@ var (
 )
 
 func init(){
-  ZBlocksAppDebugLogger = zlogger.NewZlogger(gin.DebugMode)
-  ZBlocksAppReleaseLogger = zlogger.NewZlogger(gin.ReleaseMode)
+  debugConf := zlogger.NewLoggerConfig("applogger", zlogger.DEBUG_LOGGER, zapcore.DebugLevel)
+  prodConf := zlogger.NewLoggerConfig("applogger", zlogger.JSON_LOGGER, zapcore.InfoLevel)
   
-  ZBlocksGinDebugLogger = zlogger.NewGinLogger(gin.DebugMode)
-  ZBlocksGinReleaseLogger = zlogger.NewGinLogger(gin.ReleaseMode)
+  ZBlocksAppDebugLogger = zlogger.NewAppLogger(debugConf)
+  ZBlocksAppReleaseLogger = zlogger.NewAppLogger(prodConf)
+  
+  ZBlocksGinDebugLogger = zlogger.NewGinLogger(debugConf)
+  ZBlocksGinReleaseLogger = zlogger.NewGinLogger(prodConf)
 
-  ZBlocksGormDebugLogger = zlogger.NewGormLogger(gin.DebugMode)
-  ZBlocksGormReleaseLogger = zlogger.NewGormLogger(gin.ReleaseMode)
+  zlogger.SetupGormLogger(debugConf)
 }
 
 func createServer() (*gin.Engine, *http.Server){

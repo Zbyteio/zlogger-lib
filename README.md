@@ -62,7 +62,14 @@ db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 })
 ```
 
+## Best Practices
+[ ] Initialise only once
+[ ] Use as global variable in each package.
+
 ## TODO 
 - [X] remove setting of gin mode, maintain local state instead
-- [ ] Add custom log levels if required later
 - [ ] Add basic configurability
+- [ ] Create a top level logger that init all the loggers
+- [ ] Use factory pattern to instantiate the library
+- [ ] Gorm Logger release mode not working
+- [ ] Add custom log levels if required later
