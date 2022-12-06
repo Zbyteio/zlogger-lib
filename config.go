@@ -48,7 +48,7 @@ func (lc *loggerConfig) SetLoggerType(loggerType LoggerType) LoggerType {
 
 
 func NewLoggerConfig(loggerName string, loggerType LoggerType, loggerLevel zapcore.Level) (loggerConfig) {
-	if loggerType != DEBUG_LOGGER || loggerType != JSON_LOGGER {
+	if loggerType != DEBUG_LOGGER && loggerType != JSON_LOGGER {
 		loggerType = DEBUG_LOGGER
 	}
 	if loggerName == "" {
