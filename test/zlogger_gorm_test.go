@@ -1,6 +1,7 @@
 package zlogger_test
 
 import (
+	"context"
 	"log"
 	"testing"
 
@@ -12,8 +13,9 @@ import (
 
 func TestGormLogger(t *testing.T) {
 	t.Run("test gorm logger", func(t *testing.T) {
-		gindebugConf := zlogger.NewLoggerConfig("ginlogger", zlogger.DEBUG_LOGGER, zapcore.DebugLevel)
-		zlogger.SetupGormLogger(gindebugConf)
+		gormdebugConf := zlogger.NewLoggerConfig("gormlogger", zlogger.JSON_LOGGER, zapcore.DebugLevel)
+		gormLogger := zlogger.SetupGormLogger(gormdebugConf)
+    gormLogger.SetAsDefault()
 
 		dsn := "host=localhost\nuser=postgres\npassword=foxbat\ndbname=postgres\nport=5432\nsslmode=disable\nTimeZone=Asia/Shanghai"
 		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
@@ -22,6 +24,7 @@ func TestGormLogger(t *testing.T) {
 		if err != nil {
 			log.Println(err)
 		}
+    
 		type User struct {
 			gorm.Model
 			Email string `json:"email"`
@@ -39,6 +42,8 @@ func TestGormLogger(t *testing.T) {
 		if tx.Error != nil {
 			log.Println(tx.Error)
 		}
+
+    gormLogger.Info(context.Background(),"This is first message from gorm logger")
 		tx = db.Delete(user)
 		if tx.Error != nil {
 			log.Println(tx.Error)
