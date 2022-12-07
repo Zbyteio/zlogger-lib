@@ -78,5 +78,9 @@ func (gl ginLogger) GinRequestLoggerMiddleware() gin.HandlerFunc {
 // for printing all the routes defined in gin
 func (gl ginLogger) ginDebugLogger(httpMethod, absolutePath, handlerName string, nuHandlers int) {
 	// TODO: remove color coding in release mode
-	gl.Info(fmt.Sprintf("%s\t%s", colorifyRequestMethod(httpMethod), absolutePath))
+	if gin.Mode() == gin.DebugMode{
+		gl.Info(fmt.Sprintf("%s\t%s", colorifyRequestMethod(httpMethod), absolutePath))
+	}else {
+		gl.Info(fmt.Sprintf("%s\t%s", httpMethod, absolutePath))
+	}
 }

@@ -6,8 +6,6 @@ import (
 )
 
 
-var _loggerConfig loggerConfig
-
 type loggerConfig struct {
 	loggerName string
 	loggerType LoggerType
@@ -55,7 +53,7 @@ func NewLoggerConfig(loggerName string, loggerType LoggerType, loggerLevel zapco
 		loggerName = "app"
 	}
 
-	_loggerConfig = loggerConfig{
+	_loggerConfig := loggerConfig{
 		loggerName: loggerName,
 		loggerType: loggerType,
 		loggerLevel: loggerLevel,
