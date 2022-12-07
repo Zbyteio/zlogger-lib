@@ -61,8 +61,8 @@ func NewLoggerConfig(loggerName string, loggerType LoggerType, loggerLevel zapco
 		loggerLevel: loggerLevel,
 		config:  zap.Config{
 			Level:            zap.NewAtomicLevelAt(loggerLevel),
-			Development:      true,
-			Encoding:         "console",
+			Development:      false,
+			Encoding:         "json",
 			EncoderConfig:    zapcore.EncoderConfig{
 				// Keys can be anything except the empty string.
 				TimeKey:        "timestamp",
@@ -83,6 +83,8 @@ func NewLoggerConfig(loggerName string, loggerType LoggerType, loggerLevel zapco
 		},
 	}
 	if loggerType == DEBUG_LOGGER {
+		_loggerConfig.config.Encoding = "console"
+		_loggerConfig.config.Development = true
 		_loggerConfig.config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		_loggerConfig.config.EncoderConfig.EncodeDuration = zapcore.StringDurationEncoder
 	}

@@ -68,7 +68,7 @@ db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 
 ## TODO 
 - [X] remove setting of gin mode, maintain local state instead
-- [ ] Add basic configurability
+- [X] Add basic configurability
 - [ ] Create a top level logger that init all the loggers
 - [ ] Use factory pattern to instantiate the library
 - [ ] Gorm Logger release mode not working

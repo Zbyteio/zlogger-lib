@@ -22,16 +22,16 @@ var (
 )
 
 func init(){
-  debugConf := zlogger.NewLoggerConfig("applogger", zlogger.DEBUG_LOGGER, zapcore.DebugLevel)
-  prodConf := zlogger.NewLoggerConfig("applogger", zlogger.JSON_LOGGER, zapcore.InfoLevel)
+  appdebugConf := zlogger.NewLoggerConfig("applogger", zlogger.DEBUG_LOGGER, zapcore.DebugLevel)
+  appprodConf := zlogger.NewLoggerConfig("applogger", zlogger.JSON_LOGGER, zapcore.InfoLevel)
   
-  ZBlocksAppDebugLogger = zlogger.NewAppLogger(debugConf)
-  ZBlocksAppReleaseLogger = zlogger.NewAppLogger(prodConf)
+  ZBlocksAppDebugLogger = zlogger.NewAppLogger(appdebugConf)
+  ZBlocksAppReleaseLogger = zlogger.NewAppLogger(appprodConf)
   
-  ZBlocksGinDebugLogger = zlogger.NewGinLogger(debugConf)
-  ZBlocksGinReleaseLogger = zlogger.NewGinLogger(prodConf)
-
-  zlogger.SetupGormLogger(debugConf)
+  gindebugConf := zlogger.NewLoggerConfig("ginlogger", zlogger.DEBUG_LOGGER, zapcore.DebugLevel)
+  ginprodConf := zlogger.NewLoggerConfig("ginlogger", zlogger.JSON_LOGGER, zapcore.InfoLevel)
+  ZBlocksGinDebugLogger = zlogger.NewGinLogger(gindebugConf)
+  ZBlocksGinReleaseLogger = zlogger.NewGinLogger(ginprodConf)
 }
 
 func createServer() (*gin.Engine, *http.Server){

@@ -21,6 +21,7 @@ type ginLogger struct {
 
 func NewGinLogger(loggerConfig loggerConfig) GinLogger {
 	_libLogger := generateZapLogger(&loggerConfig.config, "lib")
+	loggerConfig.config.DisableCaller = true
 	_ginLogger = &ginLogger{generateZapLogger(&loggerConfig.config, loggerConfig.loggerName)}
 
 	if loggerConfig.loggerType == DEBUG_LOGGER {
