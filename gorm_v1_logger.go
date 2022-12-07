@@ -3,6 +3,7 @@ package zlogger
 import (
 	"time"
 
+	gormv1 "github.com/jinzhu/gorm"
 	"go.uber.org/zap"
 )
 
@@ -10,10 +11,12 @@ type Logger struct {
 	zap *zap.Logger
 }
 
-func SetupGormLoggerV1(loggerConfig loggerConfig) Logger {
+func SetupGormLoggerV1(db*gormv1.DB, loggerConfig loggerConfig) Logger {
 	loggerConfig.config.DisableCaller = true
 	loggerConfig.config.DisableStacktrace = true
   _gormLogger := generateZapLogger(&loggerConfig.config, loggerConfig.loggerName)
+	db.SetLogger(Logger{zap: _gormLogger})
+	db.LogMode(true)
 	return Logger{zap: _gormLogger}
 }
 

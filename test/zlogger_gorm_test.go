@@ -17,7 +17,6 @@ func TestGormLogger(t *testing.T) {
 	t.Run("test gorm_v2 logger", func(t *testing.T) {
 		gormdebugConf := zlogger.NewLoggerConfig("gormlogger_v2", zlogger.JSON_LOGGER, zapcore.DebugLevel)
 		gormLogger := zlogger.SetupGormLoggerV2(gormdebugConf)
-
 		dsn := "host=localhost\nuser=postgres\npassword=foxbat\ndbname=postgres\nport=5432\nsslmode=disable\nTimeZone=Asia/Shanghai"
 		db, err := gormv2.Open(postgres.Open(dsn), &gormv2.Config{
 			Logger: gormLogger,
@@ -59,8 +58,7 @@ func TestGormLogger(t *testing.T) {
 			log.Println(err)
 		}
 
-    db.SetLogger(zlogger.SetupGormLoggerV1(gormdebugConf))
-    db.LogMode(true)
+    zlogger.SetupGormLoggerV1(db, gormdebugConf)
     
 		type User struct {
 			gormv1.Model
