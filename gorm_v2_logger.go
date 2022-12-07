@@ -21,7 +21,7 @@ type GormLogger struct {
 	IgnoreRecordNotFoundError bool
 }
 
-func SetupGormLogger(loggerConfig loggerConfig) GormLogger {
+func SetupGormLoggerV2(loggerConfig loggerConfig) GormLogger {
 	loggerConfig.config.DisableCaller = true
 	loggerConfig.config.DisableStacktrace = true
 	
@@ -41,10 +41,10 @@ func SetupGormLogger(loggerConfig loggerConfig) GormLogger {
 
 
 	if loggerConfig.loggerType == DEBUG_LOGGER {
-		_libLogger.Info("created a [DEBUG-GIN-LOGGER] with logger-name :: " + loggerConfig.loggerName)
+		_libLogger.Info("created a [DEBUG-GORM-LOGGER] with logger-name :: " + loggerConfig.loggerName)
 	} else if loggerConfig.loggerType == JSON_LOGGER {
 		gormLogger.LoggerMode = gin.ReleaseMode
-		_libLogger.Info("created a [JSON-GIN-LOGGER] with logger-name :: " + loggerConfig.loggerName)
+		_libLogger.Info("created a [JSON-GORM-LOGGER] with logger-name :: " + loggerConfig.loggerName)
 	}
 	gormlogger.Default = gormLogger
 	return gormLogger
