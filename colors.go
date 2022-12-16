@@ -175,3 +175,7 @@ func colorifySqlLatency(latency time.Duration, threshold time.Duration) string {
 	}
 	return colorPallet.colorfgRed(latency.String())
 }
+
+func colorifyRequestError(errorMsg string) string {
+	return colorPallet.colorfgRed(errorMsg)
+}

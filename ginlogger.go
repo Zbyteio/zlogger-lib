@@ -2,28 +2,31 @@ package zlogger
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
-var _ginLogger GinLogger
+var gl ginLogger
 
 type GinLogger interface {
 	ginDebugLogger(httpMethod, absolutePath, handlerName string, nuHandlers int)
-	GinRequestLoggerMiddleware() gin.HandlerFunc
+	GinRequestLoggerMiddleware(params gin.LogFormatterParams) string 
 }
 
 type ginLogger struct {
 	*zap.Logger
 }
 
-func NewGinLogger(loggerConfig loggerConfig) GinLogger {
+func NewGinLogger(loggerConfig loggerConfig, skipRoutes []string) gin.LoggerConfig {
 	_libLogger := generateZapLogger(&loggerConfig.config, "lib")
 	loggerConfig.config.DisableCaller = true
-	_ginLogger = &ginLogger{generateZapLogger(&loggerConfig.config, loggerConfig.loggerName)}
 
+	loggerConfig.config.EncoderConfig.MessageKey = "requestUrl"
+	
+	gl = ginLogger{generateZapLogger(&loggerConfig.config, loggerConfig.loggerName)}
+	
 	if loggerConfig.loggerType == DEBUG_LOGGER {
 		_libLogger.Info("created a [DEBUG-GIN-LOGGER] with logger-name :: " + loggerConfig.loggerName)
 	} else if loggerConfig.loggerType == JSON_LOGGER {
@@ -31,56 +34,61 @@ func NewGinLogger(loggerConfig loggerConfig) GinLogger {
 	}
 	// set logger function to
 	// print routes for this logger
-	gin.DebugPrintRouteFunc = _ginLogger.ginDebugLogger
-	return _ginLogger
-}
-
-func (gl ginLogger) GinRequestLoggerMiddleware() gin.HandlerFunc {
-	if gin.Mode() == gin.DebugMode {
-		return func(c *gin.Context) {
-			reqUrl := fmt.Sprintf("%s%s", c.Request.Host, c.Request.URL.String())
-			start := time.Now()
-			// Before calling handler
-			c.Next()
-			stop := time.Now()
-			// After calling handler
-			// create color coding for status codes
-			var statusCode int = c.Writer.Status()
-			var formatedStatusCode string = colorifySatusCode(statusCode)
-			var formatedRequestMethod string = colorifyRequestMethod(c.Request.Method)
-			var formatedLatency string = colorifyRequestLatency(stop.Sub(start))
-
-			gl.Named(c.Request.Proto).Info(fmt.Sprintf("%s\t%s\t%s\t%s",
-				formatedStatusCode,
-				formatedRequestMethod,
-				reqUrl,
-				formatedLatency))
-		}
-	} else {
-		return func(c *gin.Context) {
-			reqUrl := fmt.Sprintf("%s%s", c.Request.Host, c.Request.URL.String())	
-			start := time.Now()
-			// Before calling handler
-			c.Next()
-			stop := time.Now()
-			// After calling handler
-			// create color coding for status codes
-			gl.Named(c.Request.Proto).Info("",
-				zap.Int("statusCode", c.Writer.Status()),
-				zap.String("requestMethod", c.Request.Method),
-				zap.String("requestUrl", reqUrl),
-				zap.Duration("latency", stop.Sub(start)),
-			)
-		}
+	//gin.DebugPrintRouteFunc = _ginLogger.ginDebugLogger
+	return gin.LoggerConfig{
+		SkipPaths: skipRoutes,
+		Formatter: gin.LogFormatter(ginRequestLoggerMiddleware),
 	}
 }
 
+func ginRequestLoggerMiddleware(params gin.LogFormatterParams) string {
+	if gl.Level().CapitalString() > zapcore.DebugLevel.CapitalString() {
+		// PRODUCTION
+
+		gl.Info(params.Path,
+			zap.Int("statusCode", params.StatusCode),
+			zap.String("requestMethod", params.Method),
+			zap.String("error", params.ErrorMessage),
+			zap.String("clientIP", params.ClientIP),
+			zap.Duration("latency", params.Latency),
+		)
+	} else {
+			// DEBUG
+			var formatedStatusCode string = colorifySatusCode(params.StatusCode)
+			var formatedRequestMethod string = colorifyRequestMethod(params.Method)
+			var formatedLatency string = colorifyRequestLatency(params.Latency)
+
+			if(params.ErrorMessage != "") {
+				var formattedError string = colorifyRequestError(params.ErrorMessage)
+				gl.Sugar().Errorf("%-18s%-20s%s\t%s\t%s\t%s",
+					formatedStatusCode,
+					formatedRequestMethod,
+					params.Path,
+					formattedError,
+					params.ClientIP,
+					formatedLatency)
+			} else {
+				gl.Sugar().Infof("%-18s%-20s%s\t%s\t%s",
+					formatedStatusCode,
+					formatedRequestMethod,
+					params.Path,
+					params.ClientIP,
+					formatedLatency)
+			}
+			
+	}
+	return ""
+}
+
 // for printing all the routes defined in gin
-func (gl ginLogger) ginDebugLogger(httpMethod, absolutePath, handlerName string, nuHandlers int) {
-	// TODO: remove color coding in release mode
-	if gin.Mode() == gin.DebugMode{
-		gl.Info(fmt.Sprintf("%s\t%s", colorifyRequestMethod(httpMethod), absolutePath))
+func GinDebugLogger(httpMethod, absolutePath, handlerName string, nuHandlers int) {
+	if gl.Level().CapitalString() > zapcore.DebugLevel.CapitalString() {
+		// PRODUCTION
+		gl.Info(absolutePath, 
+		zap.String("requestMethod", httpMethod),
+	)
 	}else {
-		gl.Info(fmt.Sprintf("%s\t%s", httpMethod, absolutePath))
+		// DEBUG
+		gl.Info(fmt.Sprintf("%-8s%s", colorifyRequestMethod(httpMethod), absolutePath))
 	}
 }

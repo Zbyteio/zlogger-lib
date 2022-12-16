@@ -1,32 +1,42 @@
 package zlogger_test
 
 import (
-	"io"
-	"log"
 	"net/http"
 	"testing"
 
+	"github.com/Zbyteio/zlogger-lib"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap/zapcore"
 )
 
+func TestGinLogger(t *testing.T) {
+	var ZBlocksGinDebugLogger gin.LoggerConfig = zlogger.NewGinLogger(
+		zlogger.NewLoggerConfig(
+			"ginlogger",
+			zlogger.DEBUG_LOGGER,
+			zapcore.DebugLevel),
+		[]string{},
+	)
 
-func TestGinLogger(t *testing.T)  {
-  t.Run("Test Gin logger", func(t *testing.T) {
-    ginEng, ginSrv := createServer()
-    gin.SetMode(gin.DebugMode)
-    ginEng.Use(
-      ZBlocksGinDebugLogger.GinRequestLoggerMiddleware(),
-    )
-    ginEng.GET("/abc", func(c *gin.Context) {
-      c.String(http.StatusOK, "Welcome Gin Server")
-    })
+	t.Run("Test Gin logger", func(t *testing.T) {
+		ginEng, ginSrv := createServer()
+		gin.DebugPrintRouteFunc = zlogger.GinDebugLogger
 
-    go runServerAndClose(ginSrv)
-    resp, err := http.Get("http://localhost:8080/abc")
-    if err != nil {
-      log.Panicln(err)
-    }
-    respByte, _ := io.ReadAll(resp.Body)
-    ZBlocksAppDebugLogger.Debug(string(respByte))
-  })
+		ginEng.Use(
+			gin.LoggerWithConfig(ZBlocksGinDebugLogger),
+		)
+
+		ginEng.GET("/debug-api", func(c *gin.Context) {
+			c.String(http.StatusOK, "Welcome Gin Server")
+		})
+
+		ginEng.GET("/release-api", func(c *gin.Context) {
+			c.String(http.StatusOK, "Welcome Gin Server")
+		})
+
+		go runServerAndClose(ginSrv)
+		http.Get("http://localhost:8080/debug-api")
+		gin.SetMode(gin.ReleaseMode)
+		http.Get("http://localhost:8080/release-api")
+	})
 }
