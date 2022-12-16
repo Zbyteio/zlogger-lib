@@ -10,23 +10,18 @@ import (
 
 var gl ginLogger
 
-type GinLogger interface {
-	ginDebugLogger(httpMethod, absolutePath, handlerName string, nuHandlers int)
-	GinRequestLoggerMiddleware(params gin.LogFormatterParams) string 
-}
-
 type ginLogger struct {
 	*zap.Logger
 }
 
-func NewGinLogger(loggerConfig loggerConfig, skipRoutes []string) gin.LoggerConfig {
+func NewGinLoggerConfig(loggerConfig loggerConfig, skipRoutes []string) gin.LoggerConfig {
 	_libLogger := generateZapLogger(&loggerConfig.config, "lib")
 	loggerConfig.config.DisableCaller = true
 
 	loggerConfig.config.EncoderConfig.MessageKey = "requestUrl"
-	
 	gl = ginLogger{generateZapLogger(&loggerConfig.config, loggerConfig.loggerName)}
-	
+	gin.DebugPrintRouteFunc = ginDebugLogger
+
 	if loggerConfig.loggerType == DEBUG_LOGGER {
 		_libLogger.Info("created a [DEBUG-GIN-LOGGER] with logger-name :: " + loggerConfig.loggerName)
 	} else if loggerConfig.loggerType == JSON_LOGGER {
@@ -42,10 +37,10 @@ func NewGinLogger(loggerConfig loggerConfig, skipRoutes []string) gin.LoggerConf
 }
 
 func ginRequestLoggerMiddleware(params gin.LogFormatterParams) string {
-	if gl.Level().CapitalString() > zapcore.DebugLevel.CapitalString() {
+	if gl.Level() > zapcore.DebugLevel {
 		// PRODUCTION
 
-		gl.Info(params.Path,
+		gl.Named("gin").Info(params.Path,
 			zap.Int("statusCode", params.StatusCode),
 			zap.String("requestMethod", params.Method),
 			zap.String("error", params.ErrorMessage),
@@ -60,7 +55,7 @@ func ginRequestLoggerMiddleware(params gin.LogFormatterParams) string {
 
 			if(params.ErrorMessage != "") {
 				var formattedError string = colorifyRequestError(params.ErrorMessage)
-				gl.Sugar().Errorf("%-18s%-20s%s\t%s\t%s\t%s",
+				gl.Named("gin").Sugar().Errorf("%-18s%-20s%s\t%s\t%s\t%s",
 					formatedStatusCode,
 					formatedRequestMethod,
 					params.Path,
@@ -68,7 +63,7 @@ func ginRequestLoggerMiddleware(params gin.LogFormatterParams) string {
 					params.ClientIP,
 					formatedLatency)
 			} else {
-				gl.Sugar().Infof("%-18s%-20s%s\t%s\t%s",
+				gl.Named("gin").Sugar().Infof("%-18s%-20s%s\t%s\t%s",
 					formatedStatusCode,
 					formatedRequestMethod,
 					params.Path,
@@ -81,14 +76,14 @@ func ginRequestLoggerMiddleware(params gin.LogFormatterParams) string {
 }
 
 // for printing all the routes defined in gin
-func GinDebugLogger(httpMethod, absolutePath, handlerName string, nuHandlers int) {
-	if gl.Level().CapitalString() > zapcore.DebugLevel.CapitalString() {
+func ginDebugLogger(httpMethod, absolutePath, handlerName string, nuHandlers int) {
+	if gl.Level() > zapcore.DebugLevel {
 		// PRODUCTION
-		gl.Info(absolutePath, 
+		gl.Named("gin").Info(absolutePath, 
 		zap.String("requestMethod", httpMethod),
 	)
 	}else {
 		// DEBUG
-		gl.Info(fmt.Sprintf("%-8s%s", colorifyRequestMethod(httpMethod), absolutePath))
+		gl.Named("gin").Info(fmt.Sprintf("%-8s%s", colorifyRequestMethod(httpMethod), absolutePath))
 	}
 }

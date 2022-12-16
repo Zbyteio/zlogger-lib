@@ -12,21 +12,12 @@ import (
 	gormlogger "gorm.io/gorm/logger"
 )
 
-type GormLogger struct {
-	LoggerMode                string
-	ZapLogger                 *zap.Logger
-	LogLevel                  gormlogger.LogLevel
-	SlowThreshold             time.Duration
-	SkipCallerLookup          bool
-	IgnoreRecordNotFoundError bool
-}
-
-func SetupGormLoggerV2(loggerConfig loggerConfig) GormLogger {
+func setupGormLoggerV2(db *gorm.DB, loggerConfig loggerConfig) GormLogger {
 	loggerConfig.config.DisableCaller = true
 	loggerConfig.config.DisableStacktrace = true
 	
 	_libLogger := generateZapLogger(&loggerConfig.config, "lib")
-	_gormLogger := generateZapLogger(&loggerConfig.config, "gorm")
+	_gormLogger := generateZapLogger(&loggerConfig.config, loggerConfig.loggerName)
 
 
 	gormLogger := GormLogger{
@@ -38,8 +29,6 @@ func SetupGormLoggerV2(loggerConfig loggerConfig) GormLogger {
 		IgnoreRecordNotFoundError: false,
 	}
 
-
-
 	if loggerConfig.loggerType == DEBUG_LOGGER {
 		_libLogger.Info("created a [DEBUG-GORM-LOGGER] with logger-name :: " + loggerConfig.loggerName)
 	} else if loggerConfig.loggerType == JSON_LOGGER {
@@ -47,6 +36,7 @@ func SetupGormLoggerV2(loggerConfig loggerConfig) GormLogger {
 		_libLogger.Info("created a [JSON-GORM-LOGGER] with logger-name :: " + loggerConfig.loggerName)
 	}
 	gormlogger.Default = gormLogger
+	db.Logger = gormLogger
 	return gormLogger
 }
 
@@ -69,21 +59,21 @@ func (l GormLogger) Info(ctx context.Context, str string, args ...interface{}) {
 	if l.LogLevel < gormlogger.Info {
 		return
 	}
-	l.ZapLogger.Sugar().Debugf(str, args...)
+	l.ZapLogger.Named("gorm").Sugar().Debugf(str, args...)
 }
 
 func (l GormLogger) Warn(ctx context.Context, str string, args ...interface{}) {
 	if l.LogLevel < gormlogger.Warn {
 		return
 	}
-	l.ZapLogger.Sugar().Warnf(str, args...)
+	l.ZapLogger.Named("gorm").Sugar().Warnf(str, args...)
 }
 
 func (l GormLogger) Error(ctx context.Context, str string, args ...interface{}) {
 	if l.LogLevel < gormlogger.Error {
 		return
 	}
-	l.ZapLogger.Sugar().Errorf(str, args...)
+	l.ZapLogger.Named("gorm").Sugar().Errorf(str, args...)
 }
 
 func (l GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
@@ -98,9 +88,9 @@ func (l GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (strin
 			formattedError := colorPallet.colorfgRed(err.Error())
 			formattedElapsed := colorifySqlLatency(elapsed, l.SlowThreshold)
 			formattedSql := colorPallet.colorfgMagenta(sql)
-			l.ZapLogger.Error(fmt.Sprintf("error=%stime=%v\trows= %d\tsql=%s", formattedError, formattedElapsed, rows, formattedSql))
+			l.ZapLogger.Named("gorm").Error(fmt.Sprintf("error=%stime=%v\trows= %d\tsql=%s", formattedError, formattedElapsed, rows, formattedSql))
 		} else {
-			l.ZapLogger.Error("trace",
+			l.ZapLogger.Named("gorm").Error("trace",
 				zap.Error(err),
 				zap.Duration("elapsed", elapsed),
 				zap.Int64("rows", rows),
@@ -111,10 +101,10 @@ func (l GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (strin
 		if l.LoggerMode == gin.DebugMode {
 			formattedElapsed := colorifySqlLatency(elapsed, l.SlowThreshold)
 			formattedSql := colorPallet.colorfgMagenta(sql)
-			l.ZapLogger.Warn(fmt.Sprintf("time=%v\trows=%d\tsql=%s", formattedElapsed, rows, formattedSql))
+			l.ZapLogger.Named("gorm").Warn(fmt.Sprintf("time=%v\trows=%d\tsql=%s", formattedElapsed, rows, formattedSql))
 			
 		} else {
-			l.ZapLogger.Debug("trace",
+			l.ZapLogger.Named("gorm").Debug("trace",
 				zap.Duration("elapsed", elapsed),
 				zap.Int64("rows", rows),
 				zap.String("sql", sql))
@@ -124,9 +114,9 @@ func (l GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (strin
 		if l.LoggerMode  == gin.DebugMode {
 			formattedElapsed := colorifySqlLatency(elapsed, l.SlowThreshold)
 			formattedSql := colorPallet.colorfgMagenta(sql)
-			l.ZapLogger.Debug(fmt.Sprintf("time=%v\trows=%d\tsql=%s", formattedElapsed, rows, formattedSql))
+			l.ZapLogger.Named("gorm").Debug(fmt.Sprintf("time=%v\trows=%d\tsql=%s", formattedElapsed, rows, formattedSql))
 		} else {
-			l.ZapLogger.Debug("trace",
+			l.ZapLogger.Named("gorm").Debug("trace",
 				zap.Duration("elapsed", elapsed),
 				zap.Int64("rows", rows),
 				zap.String("sql", sql))

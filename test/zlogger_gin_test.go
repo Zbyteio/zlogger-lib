@@ -10,18 +10,16 @@ import (
 )
 
 func TestGinLogger(t *testing.T) {
-	var ZBlocksGinDebugLogger gin.LoggerConfig = zlogger.NewGinLogger(
+	var ZBlocksGinDebugLogger gin.LoggerConfig = zlogger.NewGinLoggerConfig(
 		zlogger.NewLoggerConfig(
 			"ginlogger",
-			zlogger.DEBUG_LOGGER,
-			zapcore.DebugLevel),
+			zlogger.JSON_LOGGER,
+			zapcore.InfoLevel),
 		[]string{},
 	)
 
 	t.Run("Test Gin logger", func(t *testing.T) {
 		ginEng, ginSrv := createServer()
-		gin.DebugPrintRouteFunc = zlogger.GinDebugLogger
-
 		ginEng.Use(
 			gin.LoggerWithConfig(ZBlocksGinDebugLogger),
 		)

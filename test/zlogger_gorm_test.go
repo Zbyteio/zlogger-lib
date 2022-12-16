@@ -5,26 +5,24 @@ import (
 	"testing"
 
 	"github.com/Zbyteio/zlogger-lib"
+	gormv1 "github.com/jinzhu/gorm"
 	"go.uber.org/zap/zapcore"
 	"gorm.io/driver/postgres"
 	gormv2 "gorm.io/gorm"
 
-	gormv1 "github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
 )
 
 func TestGormLogger(t *testing.T) {
 	t.Run("test gorm_v2 logger", func(t *testing.T) {
-		gormdebugConf := zlogger.NewLoggerConfig("gormlogger_v2", zlogger.JSON_LOGGER, zapcore.DebugLevel)
-		gormLogger := zlogger.SetupGormLoggerV2(gormdebugConf)
 		dsn := "host=localhost\nuser=postgres\npassword=foxbat\ndbname=postgres\nport=5432\nsslmode=disable\nTimeZone=Asia/Shanghai"
-		db, err := gormv2.Open(postgres.Open(dsn), &gormv2.Config{
-			Logger: gormLogger,
-		})
+		db, err := gormv2.Open(postgres.Open(dsn))
 		if err != nil {
 			log.Println(err)
 		}
-    
+
+		gormdebugConf := zlogger.NewLoggerConfig("gormlogger_v2", zlogger.DEBUG_LOGGER, zapcore.DebugLevel)
+		zlogger.SetupGormLogger(nil, db, gormdebugConf)    
 		type User struct {
 			gormv2.Model
 			Email string `json:"email"`
@@ -50,7 +48,7 @@ func TestGormLogger(t *testing.T) {
 	})
 
   t.Run("test gorm_v1 logger", func(t *testing.T) {
-		gormdebugConf := zlogger.NewLoggerConfig("gormlogger_v1", zlogger.JSON_LOGGER, zapcore.DebugLevel)
+		gormdebugConf := zlogger.NewLoggerConfig("gormlogger_v1", zlogger.DEBUG_LOGGER, zapcore.DebugLevel)
 
 		dsn := "host=localhost\nuser=postgres\npassword=foxbat\ndbname=postgres\nport=5432\nsslmode=disable\nTimeZone=Asia/Shanghai"
 		db, err := gormv1.Open("postgres", dsn)
@@ -58,7 +56,8 @@ func TestGormLogger(t *testing.T) {
 			log.Println(err)
 		}
 
-    zlogger.SetupGormLoggerV1(db, gormdebugConf)
+		zlogger.SetupGormLogger(db, nil, gormdebugConf)
+
     
 		type User struct {
 			gormv1.Model

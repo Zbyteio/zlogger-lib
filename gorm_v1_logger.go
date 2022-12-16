@@ -5,39 +5,62 @@ import (
 
 	gormv1 "github.com/jinzhu/gorm"
 	"go.uber.org/zap"
+	gormv2 "gorm.io/gorm"
+	gormlogger "gorm.io/gorm/logger"
 )
 
-type Logger struct {
-	zap *zap.Logger
+type GormLogger struct {
+	LoggerMode                string
+	ZapLogger                 *zap.Logger
+	LogLevel                  gormlogger.LogLevel
+	SlowThreshold             time.Duration
+	SkipCallerLookup          bool
+	IgnoreRecordNotFoundError bool
 }
 
-func SetupGormLoggerV1(db*gormv1.DB, loggerConfig loggerConfig) Logger {
+func SetupGormLogger(dbv1 *gormv1.DB, dbv2 *gormv2.DB, loggerConfig loggerConfig) {
+	if dbv1 != nil {
+		setupGormLoggerV1(dbv1, loggerConfig)
+	} else {
+		setupGormLoggerV2(dbv2, loggerConfig)
+	}
+}
+
+func setupGormLoggerV1(dbv1 *gormv1.DB, loggerConfig loggerConfig) GormLogger {
 	loggerConfig.config.DisableCaller = true
 	loggerConfig.config.DisableStacktrace = true
-  _gormLogger := generateZapLogger(&loggerConfig.config, loggerConfig.loggerName)
-	db.SetLogger(Logger{zap: _gormLogger})
-	db.LogMode(true)
-	return Logger{zap: _gormLogger}
+	loggerConfig.config.EncoderConfig.MessageKey = "query"
+	_gormLogger := generateZapLogger(&loggerConfig.config, loggerConfig.loggerName)
+	dbv1.SetLogger(GormLogger{ZapLogger: _gormLogger})
+	dbv1.LogMode(true)
+	return GormLogger{ZapLogger: _gormLogger}
 }
 
-func (l Logger) Print(values ...interface{}) {
+func (l GormLogger) Print(values ...interface{}) {
 	if len(values) < 2 {
 		return
 	}
 
 	switch values[0] {
 	case "sql":
-		l.zap.Debug("gorm.v1.debug.sql",
-			zap.String("query", values[3].(string)),
-			zap.Any("values", values[4]),
-			zap.Float64("duration", float64(values[2].(time.Duration))/float64(time.Millisecond)),
-			zap.Int64("affected-rows", values[5].(int64)),
-			zap.String("filePath", values[1].(string)), // if AddCallerSkip(6) is well defined, we can safely remove this field
-		)
+		if(l.ZapLogger.Level() > zap.DebugLevel) {
+			l.ZapLogger.Named("gorm").Debug(values[3].(string),
+				zap.Any("values", values[4]),
+				zap.Float64("duration", float64(values[2].(time.Duration))/float64(time.Millisecond)),
+				zap.Int64("affected-rows", values[5].(int64)),
+			)
+		}else {
+			latency := colorifySqlLatency(
+				values[2].(time.Duration), 
+				l.SlowThreshold)
+
+			l.ZapLogger.Named("gorm").Sugar().Debugf("duration=%s rows=%d sql=%s", 
+			latency, values[5].(int64), colorPallet.colorfgMagenta(values[3].(string)))
+		}
 	default:
-		l.zap.Debug("gorm.v1.debug.other",
+		l.ZapLogger.Debug("",
 			zap.Any("values", values[2:]),
-			zap.String("source", values[1].(string)), // if AddCallerSkip(6) is well defined, we can safely remove this field
+			zap.String("filePath", values[1].(string)),
 		)
 	}
 }
