@@ -16,7 +16,7 @@ func init() {
 	SetupLoggerWithConfig("default", DEBUG_LOGGER, nil, nil, nil)
 }
 
-func SetupLoggerWithConfig(serviceName string, loggerType LoggerType, dbv1 *gormv1.DB, dbv2 *gormv2.DB, skipRoutes *[]string) {
+func SetupLoggerWithConfig(serviceName string, loggerType LoggerType, dbv1 *gormv1.DB, dbv2 *gormv2.DB, skipRoutes []string) {
 	var loggerConfig loggerConfig
 
 	if loggerType == JSON_LOGGER {

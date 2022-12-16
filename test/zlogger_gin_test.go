@@ -15,7 +15,7 @@ func TestGinLogger(t *testing.T) {
 			"ginlogger",
 			zlogger.JSON_LOGGER,
 			zapcore.InfoLevel),
-		&[]string{},
+		[]string{},
 	)
 
 	t.Run("Test Gin logger", func(t *testing.T) {
