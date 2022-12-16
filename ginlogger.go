@@ -1,8 +1,6 @@
 package zlogger
 
 import (
-	"fmt"
-
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -84,6 +82,6 @@ func ginDebugLogger(httpMethod, absolutePath, handlerName string, nuHandlers int
 	)
 	}else {
 		// DEBUG
-		gl.Named("gin").Info(fmt.Sprintf("%-8s%s", colorifyRequestMethod(httpMethod), absolutePath))
+		gl.Named("gin").Sugar().Infof("%-18s%s", colorifyRequestMethod(httpMethod), absolutePath)
 	}
 }

@@ -13,8 +13,8 @@ func TestGinLogger(t *testing.T) {
 	var ZBlocksGinDebugLogger gin.LoggerConfig = zlogger.NewGinLoggerConfig(
 		zlogger.NewLoggerConfig(
 			"ginlogger",
-			zlogger.JSON_LOGGER,
-			zapcore.InfoLevel),
+			zlogger.DEBUG_LOGGER,
+			zapcore.DebugLevel),
 		[]string{},
 	)
 
@@ -34,7 +34,6 @@ func TestGinLogger(t *testing.T) {
 
 		go runServerAndClose(ginSrv)
 		http.Get("http://localhost:8080/debug-api")
-		gin.SetMode(gin.ReleaseMode)
 		http.Get("http://localhost:8080/release-api")
 	})
 }
