@@ -21,7 +21,7 @@ type GormLogger struct {
 func SetupGormLogger(dbv1 *gormv1.DB, dbv2 *gormv2.DB, loggerConfig loggerConfig) {
 	if dbv1 != nil {
 		setupGormLoggerV1(dbv1, loggerConfig)
-	} else {
+	} else if dbv2 != nil {
 		setupGormLoggerV2(dbv2, loggerConfig)
 	}
 }
