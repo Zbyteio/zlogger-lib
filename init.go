@@ -1,7 +1,7 @@
 package zlogger
 
 import (
-	"errors"
+	"log"
 
 	"github.com/gin-gonic/gin"
 	gormv1 "github.com/jinzhu/gorm"
@@ -15,7 +15,11 @@ var (
 	_defaultGinConfig gin.LoggerConfig
 )
 
-func SetupLoggerWithConfig(serviceName string, loggerType LoggerType, dbv1 *gormv1.DB, dbv2 *gormv2.DB, skipRoutes []string) {
+func init() {
+	SetupLoggerWithConfig("default", DEBUG_LOGGER, nil, nil, nil)
+}
+
+func SetupLoggerWithConfig(serviceName string, loggerType LoggerType, dbv1 *gormv1.DB, dbv2 *gormv2.DB, skipRoutes *[]string) {
 	var loggerConfig loggerConfig
 
 	if loggerType == JSON_LOGGER {
@@ -46,16 +50,18 @@ func SetupLoggerWithConfig(serviceName string, loggerType LoggerType, dbv1 *gorm
 }
 
 
-func GetDefaultAppLogger() (*AppLogger, error) {
+func GetDefaultAppLogger() (*AppLogger) {
 	if _isInitialised {
-		return &_defaultAppLogger, nil
+		return &_defaultAppLogger
 	}
-	return nil, errors.New("logger not initialised")
+	log.Println("logger not initialised")
+	return nil
 }
 
-func GetDefaultGinConfig() (*gin.LoggerConfig, error) {
+func GetDefaultGinConfig() (*gin.LoggerConfig) {
 	if _isInitialised {
-		return &_defaultGinConfig, nil
+		return &_defaultGinConfig
 	}
-	return nil, errors.New("logger not initialised")
+	log.Println("logger not initialised")
+	return nil
 }

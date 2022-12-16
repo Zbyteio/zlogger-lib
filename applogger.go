@@ -38,22 +38,22 @@ type AppLogger interface {
 
 func (l *appLogger) Debugf(template string, args ...interface{}) {
 	debugString := fmt.Sprintf(template, args...)
-	l.Debug(debugString)
+	l.Named("app").Debug(debugString)
 }
 
 func (l *appLogger) Infof(template string, args ...interface{}) {
 	infoString := fmt.Sprintf(template, args...)
-	l.Info(infoString)
+	l.Named("app").Info(infoString)
 }
 
 func (l *appLogger) Warnf(template string, args ...interface{}) {
 	warnString := fmt.Sprintf(template, args...)
-	l.Warn(warnString)
+	l.Named("app").Warn(warnString)
 }
 
 func (l *appLogger) Errorf(template string, args ...interface{}) {
 	errorString := fmt.Sprintf(template, args...)
-	l.Error(errorString)
+	l.Named("app").Error(errorString)
 }
 
 // NewZloggerForTest returns a new logger and the corresponding observed logs which can be used in unit tests to verify log entries.
@@ -82,14 +82,4 @@ func NewAppLogger(loggerConfig loggerConfig) (AppLogger){
 		_libLogger.Info("created a [JSON-APP-LOGGER] with logger-name :: " + loggerConfig.loggerName)
 	}
 	return _appLogger
-}
-
-func GetAppLogger()(AppLogger) {
-	// return if already initialized
-	if(_appLogger == nil) {
-		return _appLogger
-	}
-	logConfig := NewLoggerConfig("app", DEBUG_LOGGER, zapcore.DebugLevel)
-	logger := NewAppLogger(logConfig)
-	return logger
 }

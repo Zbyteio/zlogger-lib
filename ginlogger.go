@@ -14,7 +14,7 @@ type ginLogger struct {
 	*zap.Logger
 }
 
-func NewGinLoggerConfig(loggerConfig loggerConfig, skipRoutes []string) gin.LoggerConfig {
+func NewGinLoggerConfig(loggerConfig loggerConfig, skipRoutes *[]string) gin.LoggerConfig {
 	_libLogger := generateZapLogger(&loggerConfig.config, "lib")
 	loggerConfig.config.DisableCaller = true
 
@@ -31,7 +31,7 @@ func NewGinLoggerConfig(loggerConfig loggerConfig, skipRoutes []string) gin.Logg
 	// print routes for this logger
 	//gin.DebugPrintRouteFunc = _ginLogger.ginDebugLogger
 	return gin.LoggerConfig{
-		SkipPaths: skipRoutes,
+		SkipPaths: *skipRoutes,
 		Formatter: gin.LogFormatter(ginRequestLoggerMiddleware),
 	}
 }
