@@ -1,8 +1,6 @@
 package zlogger
 
 import (
-	"log"
-
 	"github.com/gin-gonic/gin"
 	gormv1 "github.com/jinzhu/gorm"
 	"go.uber.org/zap/zapcore"
@@ -10,7 +8,6 @@ import (
 )
 
 var (
-	_isInitialised    bool
 	_defaultAppLogger AppLogger
 	_defaultGinConfig gin.LoggerConfig
 )
@@ -44,24 +41,13 @@ func SetupLoggerWithConfig(serviceName string, loggerType LoggerType, dbv1 *gorm
 
   // init gin logger
   _defaultGinConfig = NewGinLoggerConfig(loggerConfig, skipRoutes)
-	
-	// set _isInitialised
-	_isInitialised = true
 }
 
 
-func GetDefaultAppLogger() (*AppLogger) {
-	if _isInitialised {
-		return &_defaultAppLogger
-	}
-	log.Println("logger not initialised")
-	return nil
+func GetDefaultAppLogger() AppLogger {
+		return _defaultAppLogger
 }
 
-func GetDefaultGinConfig() (*gin.LoggerConfig) {
-	if _isInitialised {
-		return &_defaultGinConfig
-	}
-	log.Println("logger not initialised")
-	return nil
+func GetDefaultGinConfig() gin.LoggerConfig {
+	return _defaultGinConfig
 }
