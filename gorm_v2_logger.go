@@ -9,8 +9,17 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	gormv2 "gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
 )
+type GormLogger struct {
+	LoggerMode                string
+	ZapLogger                 *zap.Logger
+	LogLevel                  gormlogger.LogLevel
+	SlowThreshold             time.Duration
+	SkipCallerLookup          bool
+	IgnoreRecordNotFoundError bool
+}
 
 func setupGormLoggerV2(db *gorm.DB, loggerConfig loggerConfig) GormLogger {
 	loggerConfig.config.DisableCaller = true
@@ -122,4 +131,9 @@ func (l GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (strin
 				zap.String("sql", sql))
 		}
 	}
+}
+
+
+func SetupGormLogger(db *gormv2.DB, loggerConfig loggerConfig) {
+	setupGormLoggerV2(db, loggerConfig)
 }

@@ -2,7 +2,6 @@ package zlogger
 
 import (
 	"github.com/gin-gonic/gin"
-	gormv1 "github.com/jinzhu/gorm"
 	"go.uber.org/zap/zapcore"
 	gormv2 "gorm.io/gorm"
 )
@@ -13,10 +12,10 @@ var (
 )
 
 func init() {
-	SetupLoggerWithConfig("default", DEBUG_LOGGER, nil, nil, nil)
+	SetupLoggerWithConfig("default", DEBUG_LOGGER, nil, nil)
 }
 
-func SetupLoggerWithConfig(serviceName string, loggerType LoggerType, dbv1 *gormv1.DB, dbv2 *gormv2.DB, skipRoutes []string) {
+func SetupLoggerWithConfig(serviceName string, loggerType LoggerType, db *gormv2.DB, skipRoutes []string) {
 	var loggerConfig loggerConfig
 
 	if loggerType == JSON_LOGGER {
@@ -37,8 +36,8 @@ func SetupLoggerWithConfig(serviceName string, loggerType LoggerType, dbv1 *gorm
 
 
   // init gorm logger
-  SetupGormLogger(dbv1, dbv2, loggerConfig)
-
+	SetupGormLogger(db, loggerConfig)
+	
   // init gin logger
   _defaultGinConfig = NewGinLoggerConfig(loggerConfig, skipRoutes)
 }
