@@ -3,7 +3,7 @@ module github.com/Zbyteio/zlogger-lib
 go 1.19
 
 require (
-	github.com/gin-gonic/gin v1.8.1
+	github.com/gin-gonic/gin v1.8.2
 	github.com/go-playground/assert/v2 v2.2.0
 	github.com/lib/pq v1.10.7
 	go.uber.org/zap v1.24.0
