@@ -43,10 +43,10 @@ func SetupLoggerWithConfig(serviceName string, loggerType LoggerType, db *gormv2
 }
 
 
-func GetDefaultAppLogger() AppLogger {
+func GetAppLogger() AppLogger {
 		return _defaultAppLogger
 }
 
-func GetDefaultGinConfig() gin.LoggerConfig {
+func GetGinConfig() gin.LoggerConfig {
 	return _defaultGinConfig
 }
