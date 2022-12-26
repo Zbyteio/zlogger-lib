@@ -13,6 +13,9 @@ type ginLogger struct {
 }
 
 func NewGinLoggerConfig(loggerConfig loggerConfig, skipRoutes []string) gin.LoggerConfig {
+	if skipRoutes != nil {
+		skipRoutes = []string{}
+	}
 	_libLogger := generateZapLogger(&loggerConfig.config, "lib")
 	loggerConfig.config.DisableCaller = true
 

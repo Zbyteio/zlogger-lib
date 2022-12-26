@@ -1,7 +1,6 @@
 package zlogger_test
 
 import (
-	"fmt"
 	"log"
 	"testing"
 
@@ -20,10 +19,6 @@ func TestGormLogger(t *testing.T) {
 		if err != nil {
 			log.Println(err)
 		}
-
-		fmt.Println()
-		fmt.Println(db)
-		fmt.Println()
 		
 		gormdebugConf := zlogger.NewLoggerConfig("gormlogger_v2", zlogger.DEBUG_LOGGER, zapcore.DebugLevel)
 		zlogger.SetupGormLogger(db, gormdebugConf)    
