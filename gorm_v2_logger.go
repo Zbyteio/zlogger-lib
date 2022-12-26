@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-	gormv2 "gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
 )
 type GormLogger struct {
@@ -21,7 +20,7 @@ type GormLogger struct {
 	IgnoreRecordNotFoundError bool
 }
 
-func setupGormLoggerV2(db *gorm.DB, loggerConfig loggerConfig) GormLogger {
+func setupGormLogger(db *gorm.DB, loggerConfig loggerConfig) GormLogger {
 	loggerConfig.config.DisableCaller = true
 	loggerConfig.config.DisableStacktrace = true
 	
@@ -45,7 +44,9 @@ func setupGormLoggerV2(db *gorm.DB, loggerConfig loggerConfig) GormLogger {
 		_libLogger.Info("created a [JSON-GORM-LOGGER] with logger-name :: " + loggerConfig.loggerName)
 	}
 	gormlogger.Default = gormLogger
-	db.Logger = gormLogger
+	if db != nil {
+		db.Logger = gormLogger
+	}
 	return gormLogger
 }
 
@@ -134,6 +135,6 @@ func (l GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (strin
 }
 
 
-func SetupGormLogger(db *gormv2.DB, loggerConfig loggerConfig) {
-	setupGormLoggerV2(db, loggerConfig)
+func SetupGormLogger(db *gorm.DB, loggerConfig loggerConfig) {
+	setupGormLogger(db, loggerConfig)
 }

@@ -1,13 +1,14 @@
 package zlogger_test
 
 import (
+	"fmt"
 	"log"
 	"testing"
 
 	"github.com/Zbyteio/zlogger-lib"
 	"go.uber.org/zap/zapcore"
 	"gorm.io/driver/postgres"
-	gormv2 "gorm.io/gorm"
+	"gorm.io/gorm"
 
 	_ "github.com/lib/pq"
 )
@@ -15,15 +16,19 @@ import (
 func TestGormLogger(t *testing.T) {
 	t.Run("test gorm_v2 logger", func(t *testing.T) {
 		dsn := "host=localhost\nuser=postgres\npassword=foxbat\ndbname=postgres\nport=5432\nsslmode=disable\nTimeZone=Asia/Shanghai"
-		db, err := gormv2.Open(postgres.Open(dsn))
+		db, err := gorm.Open(postgres.Open(dsn))
 		if err != nil {
 			log.Println(err)
 		}
 
+		fmt.Println()
+		fmt.Println(db)
+		fmt.Println()
+		
 		gormdebugConf := zlogger.NewLoggerConfig("gormlogger_v2", zlogger.DEBUG_LOGGER, zapcore.DebugLevel)
 		zlogger.SetupGormLogger(db, gormdebugConf)    
 		type User struct {
-			gormv2.Model
+			gorm.Model
 			Email string `json:"email"`
 			Name  string `json:"name"`
 		}
