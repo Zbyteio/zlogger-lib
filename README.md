@@ -12,7 +12,7 @@
 
 Fetch the latest version of zlogger-lib
 ```
-GOPROXY=https://proxy.golang.org GO111MODULE=on go get github.com/Zbyteio/zlogger-lib@v1.3.6
+GOPROXY=https://proxy.golang.org GO111MODULE=on go get github.com/Zbyteio/zlogger-lib@v1.3.7
 ```
 ### Create an app logger
 - use this logger to log throughout the library
